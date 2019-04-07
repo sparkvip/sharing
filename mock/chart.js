@@ -40,7 +40,7 @@ for (let i = 0; i < 50; i += 1) {
 }
 const salesTypeData = [
   {
-    x: '家用电器',
+    x: 'IJ',
     y: 4544,
   },
   {
@@ -67,7 +67,7 @@ const salesTypeData = [
 
 const salesTypeDataOnline = [
   {
-    x: '家用电器',
+    x: 'IJ',
     y: 244,
   },
   {
