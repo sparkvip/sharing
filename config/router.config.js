@@ -47,6 +47,19 @@ export default [
           },
         ],
       },
+      // search分类搜索
+      {
+        path: '/search',
+        icon: 'cloud-upload',
+        name: 'search',
+        routes: [
+          {
+            path: '/search/categorylist',
+            name: 'categorylist',
+            component: './Search/CategoryList',
+          },
+        ],
+      },
       // forms
       {
         path: '/form',
