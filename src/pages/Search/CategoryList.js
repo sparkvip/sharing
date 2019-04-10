@@ -1,29 +1,19 @@
-import React, { Fragment } from 'react';
+import React from 'react';
 import { connect } from 'dva';
 import {
   Table,
-  Modal,
   Row,
   Col,
   Button,
   Form,
   Input,
   Card,
-  Alert,
-  Dropdown,
-  Menu,
-  message,
-  Checkbox,
   Select,
   Icon
 } from 'antd';
-import { formatMessage } from 'umi/locale';
 import styles from './CategoryList.less';
 
 const FormItem = Form.Item;
-const categoryConst = [{ key: 1, code: 'computer', name: '计算机' }, { key: 2, code: 'INVOKEMETHOD', name: '反射调用类方法' },
-{ key: 3, code: 'SYSTEMCOMMAND', name: 'SHELL脚本命令' }, { key: 4, code: 'BATCOMMAND', name: 'BAT脚本命令' },
-{ key: 5, code: 'TASKSQL', name: 'SQL语句' }]
 
 class CategoryList extends React.Component {
 
@@ -31,14 +21,9 @@ class CategoryList extends React.Component {
     super(props);
     this.state = {
       pagination: {
-        total: 0,
-        page: 0,
-        pageSize: 10,
-        current: 1,
         showSizeChanger: true,
         showQuickJumper: true
       },
-      formValues: {}, //条件查询传值对象
       expand: false, // 更多查询是否显示
       columns: [
         {
@@ -65,19 +50,38 @@ class CategoryList extends React.Component {
     }
   }
 
+  // 页面初次加载之前自动调用
+  componentWillMount() {
+    const { downlist: { category, fileType } } = this.props;
+    this.setState({
+      categoryDown: category,
+      fileTypeDown: fileType,
+    })
+  }
+
   // 页面初次加载完成时自动调用
   componentDidMount() {
-    this.queryList();
+    this.queryAllList();
   }
-  
+
+  // 条件查询
+  queryList = (formValues) => {
+    const { dispatch } = this.props
+    dispatch({
+      type: 'categoryList/queryList',
+      payload: formValues,
+    });
+  };
+
   // 初始化时查询
-  queryList = () => {
-    this.props.dispatch({
+  queryAllList = () => {
+    const { dispatch } = this.props
+    dispatch({
       type: 'categoryList/queryList',
     });
   };
 
-  //更多查询
+  // 更多查询
   toggle = () => {
     const { expand } = this.state;
     this.setState({ expand: !expand });
@@ -92,22 +96,16 @@ class CategoryList extends React.Component {
       if (err) {
         return;
       }
-      this.setState({
-        formValues: values,
-      });
-      this.queryList();
+      this.queryList(values);
     });
 
   };
 
   // form表单重置
-  handleFormReset = (e) => {
+  handleFormReset = () => {
     const { form } = this.props;
     form.resetFields();
-    this.setState({
-      formValues: {},
-    });
-    this.queryList();
+    this.queryAllList();
   };
 
   // 查询框
@@ -116,15 +114,15 @@ class CategoryList extends React.Component {
       form: { getFieldDecorator },
     } = this.props;
 
-    const { expand } = this.state;
+    const { expand, categoryDown, fileTypeDown } = this.state;
     return (
       <Form onSubmit={this.handleSearch} layout="inline">
         <Row gutter={18}>
           <Col span={6}>
             <FormItem label="所属类别">
               {getFieldDecorator('category')(
-               <Select placeholder="请选择" style={{ width: '100%' }}>
-                  {categoryConst.map(item => (
+                <Select placeholder="请选择" style={{ width: '100%' }}>
+                  {categoryDown.map(item => (
                     <Select.Option key={item.key} value={item.code}>{item.name}</Select.Option>
                   ))}
                 </Select>
@@ -134,11 +132,6 @@ class CategoryList extends React.Component {
           <Col span={6}>
             <FormItem label="上传用户">
               {getFieldDecorator('userName')(
-                // <Select placeholder="请选择" style={{ width: '100%' }}>
-                //   {taskTypeConst.map(item => (
-                //     <Select.Option key={item.key} value={item.code}>{item.name}</Select.Option>
-                //   ))}
-                // </Select>
                 <Input placeholder="请输入" />
               )}
             </FormItem>
@@ -147,10 +140,10 @@ class CategoryList extends React.Component {
           <Col span={12}>
             <Button type="primary" htmlType="submit">
               查询
-                        </Button>
+            </Button>
             <Button style={{ marginLeft: 8 }} onClick={this.handleFormReset}>
               重置
-                        </Button>
+            </Button>
             <Button style={{ marginLeft: 8, fontSize: 12 }} onClick={this.toggle}>
               更多查询 <Icon type={expand ? 'up' : 'down'} />
             </Button>
@@ -160,7 +153,11 @@ class CategoryList extends React.Component {
           <Col span={6}>
             <FormItem label="文件类型">
               {getFieldDecorator('fileType')(
-                <Input placeholder="请输入" />
+                <Select placeholder="请选择" style={{ width: '100%' }}>
+                  {fileTypeDown.map(item => (
+                    <Select.Option key={item.key} value={item.code}>{item.name}</Select.Option>
+                  ))}
+                </Select>
               )}
             </FormItem>
           </Col>
@@ -170,16 +167,8 @@ class CategoryList extends React.Component {
   }
 
   render() {
-
     const { categoryList: { data }, loading } = this.props
-
-    const { selectedRowKeys ,selectedRows, pagination, columns } = this.state;
-
-    const parentMethods = {
-      handleOk: this.handleOk,
-      handleCancel: this.handleCancel,
-    };
-
+    const { pagination, columns } = this.state;
     return (
       <div>
         <Card bordered={false}>
@@ -196,13 +185,14 @@ class CategoryList extends React.Component {
             </div>
           </div>
         </Card>
-      </div >
+      </div>
     );
   }
 }
 
 const mapStateToProps = (state) => ({
   categoryList: state.categoryList,
+  downlist: state.downlist.list,
   loading: state.loading.models.categoryList,
 });
 export default connect(mapStateToProps)(Form.create()(CategoryList));

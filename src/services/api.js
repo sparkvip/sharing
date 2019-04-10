@@ -1,6 +1,15 @@
 import { stringify } from 'qs';
 import request from '@/utils/request';
 
+export async function querydownList(params) {
+  return request('/api/sys/downlist/query', {
+    method: 'POST',
+    data: {
+      ...params,
+      method: 'post',
+    },
+  });
+}
 export async function queryProjectNotice() {
   return request('/api/project/notice');
 }

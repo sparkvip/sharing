@@ -1,4 +1,6 @@
+/* eslint-disable import/extensions */
 import * as categoryList from '../service.js';
+
 export default {
   namespace: 'categoryList',
   state: {
