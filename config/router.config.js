@@ -60,6 +60,24 @@ export default [
           },
         ],
       },
+       // 资源上传
+       {
+        path: '/upload',
+        icon: 'table',
+        name: 'upload',
+        routes: [
+          {
+            path: '/upload/submit',
+            name: 'uploadsubmit',
+            component: './Upload/Submitted',
+          },
+          {
+            path: '/upload/query',
+            name: 'uploadquery',
+            component: './Upload/Queried',
+          },
+        ],
+      },
       // forms
       {
         path: '/form',

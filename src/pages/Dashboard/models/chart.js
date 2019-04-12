@@ -6,20 +6,20 @@ export default {
   state: {
     visitData: [],
     visitData2: [],
-    salesData: [],
-    searchData: [],
-    offlineData: [],
-    offlineChartData: [],
-    salesTypeData: [],
-    salesTypeDataOnline: [],
-    salesTypeDataOffline: [],
-    radarData: [],
     loading: false,
   },
 
   effects: {
     *fetch(_, { call, put }) {
       const response = yield call(fakeChartData);
+      yield put({
+        type: 'save',
+        payload: response,
+      });
+    },
+    // 显示推荐的列表
+    *queryShowData(_, { call, put }) {
+      const response = yield call(queryShowData);
       yield put({
         type: 'save',
         payload: response,
@@ -47,14 +47,6 @@ export default {
       return {
         visitData: [],
         visitData2: [],
-        salesData: [],
-        searchData: [],
-        offlineData: [],
-        offlineChartData: [],
-        salesTypeData: [],
-        salesTypeDataOnline: [],
-        salesTypeDataOffline: [],
-        radarData: [],
       };
     },
   },

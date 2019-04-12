@@ -63,6 +63,10 @@ export async function fakeChartData() {
   return request('/api/fake_chart_data');
 }
 
+export async function queryShowData() {
+  return request('/api/chart/queryShowData');
+}
+
 export async function queryTags() {
   return request('/api/tags');
 }
