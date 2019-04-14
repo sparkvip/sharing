@@ -4,28 +4,37 @@ import { formatMessage, FormattedMessage } from 'umi-plugin-react/locale';
 import {
   Form,
   Input,
-  DatePicker,
+  Upload,
+  message,
+  Icon,
   Select,
   Button,
   Card,
-  InputNumber,
   Radio,
-  Icon,
-  Tooltip,
 } from 'antd';
 import PageHeaderWrapper from '@/components/PageHeaderWrapper';
-import styles from './style.less';
 
 const FormItem = Form.Item;
-const { Option } = Select;
-const { RangePicker } = DatePicker;
 const { TextArea } = Input;
+const {Dragger} = Upload;
+const baseUrl = 'http://localhost:8081/';
 
-@connect(({ loading }) => ({
+@connect(({ loading, downlist }) => ({
+  downlist: downlist.list,
   submitting: loading.effects['form/submitRegularForm'],
 }))
 @Form.create()
 class BasicForms extends PureComponent {
+
+
+  // 页面初次加载之前自动调用
+  componentWillMount() {
+    const { downlist: { category } } = this.props;
+    this.setState({
+      categoryDown: category,
+    })
+  }
+
   handleSubmit = e => {
     const { dispatch, form } = this.props;
     e.preventDefault();
@@ -41,8 +50,9 @@ class BasicForms extends PureComponent {
 
   render() {
     const { submitting } = this.props;
+    const { categoryDown } = this.state;
     const {
-      form: { getFieldDecorator, getFieldValue },
+      form: { getFieldDecorator },
     } = this.props;
 
     const formItemLayout = {
@@ -64,10 +74,31 @@ class BasicForms extends PureComponent {
       },
     };
 
+    // 上传按钮的属性对象
+    const uploadProps = {
+      name: 'file',
+      multiple: true,
+      action: `${baseUrl}user/test`,
+      headers: {
+        authorization: 'authorization-text',
+      },
+      onChange(info) {
+        // console.log('action',info)
+        if (info.file.status !== 'uploading') {
+          // console.log(info.file, info.fileList);
+        }
+        if (info.file.status === 'done') {
+          message.success(`${info.file.name} file uploaded successfully`);
+        } else if (info.file.status === 'error') {
+          message.error(`${info.file.name} file upload failed.`);
+        }
+      },
+    };
+
     return (
       <PageHeaderWrapper
         title='资源上传'
-        content='填写资源相关信息 =》 选择资源文件 =》 进行上传'
+        content='1、填写资源相关信息 2、选择资源文件 3、进行上传'
       >
         <Card bordered={false}>
           <Form onSubmit={this.handleSubmit} hideRequiredMark style={{ marginTop: 8 }}>
@@ -79,35 +110,26 @@ class BasicForms extends PureComponent {
                     message: '资源名称为必输项',
                   },
                 ],
-              })(<Input placeholder={formatMessage({ id: 'form.title.placeholder' })} />)}
+              })(<Input placeholder='资源名称' />)}
             </FormItem>
-            <FormItem {...formItemLayout} label={<FormattedMessage id="form.date.label" />}>
-              {getFieldDecorator('date', {
+            <FormItem {...formItemLayout} label='资源分类'>
+              {getFieldDecorator('standard', {
                 rules: [
                   {
                     required: true,
-                    message: formatMessage({ id: 'validation.date.required' }),
+                    message: '资源分类为必选项',
                   },
                 ],
               })(
-                <RangePicker
-                  style={{ width: '100%' }}
-                  placeholder={[
-                    formatMessage({ id: 'form.date.placeholder.start' }),
-                    formatMessage({ id: 'form.date.placeholder.end' }),
-                  ]}
-                />
+                <Select placeholder="请选择" style={{ width: '100%' }}>
+                  {categoryDown.map(item => (
+                    <Select.Option key={item.key} value={item.code}>{item.name}</Select.Option>
+                  ))}
+                </Select>
               )}
             </FormItem>
-            <FormItem {...formItemLayout} label={<FormattedMessage id="form.goal.label" />}>
-              {getFieldDecorator('goal', {
-                rules: [
-                  {
-                    required: true,
-                    message: formatMessage({ id: 'validation.goal.required' }),
-                  },
-                ],
-              })(
+            <FormItem {...formItemLayout} label='资源描述'>
+              {getFieldDecorator('introduction')(
                 <TextArea
                   style={{ minHeight: 32 }}
                   placeholder={formatMessage({ id: 'form.goal.placeholder' })}
@@ -115,79 +137,24 @@ class BasicForms extends PureComponent {
                 />
               )}
             </FormItem>
-            <FormItem {...formItemLayout} label={<FormattedMessage id="form.standard.label" />}>
-              {getFieldDecorator('standard', {
-                rules: [
-                  {
-                    required: true,
-                    message: formatMessage({ id: 'validation.standard.required' }),
-                  },
-                ],
-              })(
-                <TextArea
-                  style={{ minHeight: 32 }}
-                  placeholder={formatMessage({ id: 'form.standard.placeholder' })}
-                  rows={4}
-                />
-              )}
+            <FormItem {...formItemLayout} label='选择文件'>
+              {/* <Upload {...uploadProps}>
+                <Button>
+                  <Icon type="upload" /> 点击上传
+                </Button>
+              </Upload>, */}
+              <Dragger {...uploadProps}>
+                <p className="ant-upload-drag-icon">
+                  <Icon type="inbox" />
+                </p>
+                <p className="ant-upload-text">点击或拖拽文件至此进行上传</p>
+                <p className="ant-upload-hint">支持单个或批量上传！</p>
+              </Dragger>,
             </FormItem>
             <FormItem
               {...formItemLayout}
-              label={
-                <span>
-                  <FormattedMessage id="form.client.label" />
-                  <em className={styles.optional}>
-                    <FormattedMessage id="form.optional" />
-                    <Tooltip title={<FormattedMessage id="form.client.label.tooltip" />}>
-                      <Icon type="info-circle-o" style={{ marginRight: 4 }} />
-                    </Tooltip>
-                  </em>
-                </span>
-              }
-            >
-              {getFieldDecorator('client')(
-                <Input placeholder={formatMessage({ id: 'form.client.placeholder' })} />
-              )}
-            </FormItem>
-            <FormItem
-              {...formItemLayout}
-              label={
-                <span>
-                  <FormattedMessage id="form.invites.label" />
-                  <em className={styles.optional}>
-                    <FormattedMessage id="form.optional" />
-                  </em>
-                </span>
-              }
-            >
-              {getFieldDecorator('invites')(
-                <Input placeholder={formatMessage({ id: 'form.invites.placeholder' })} />
-              )}
-            </FormItem>
-            <FormItem
-              {...formItemLayout}
-              label={
-                <span>
-                  <FormattedMessage id="form.weight.label" />
-                  <em className={styles.optional}>
-                    <FormattedMessage id="form.optional" />
-                  </em>
-                </span>
-              }
-            >
-              {getFieldDecorator('weight')(
-                <InputNumber
-                  placeholder={formatMessage({ id: 'form.weight.placeholder' })}
-                  min={0}
-                  max={100}
-                />
-              )}
-              <span className="ant-form-text">%</span>
-            </FormItem>
-            <FormItem
-              {...formItemLayout}
-              label={<FormattedMessage id="form.public.label" />}
-              help={<FormattedMessage id="form.public.label.help" />}
+              label='是否加入推荐'
+              help='是否会展现在推荐页中，需要管理员审核'
             >
               <div>
                 {getFieldDecorator('public', {
@@ -195,38 +162,13 @@ class BasicForms extends PureComponent {
                 })(
                   <Radio.Group>
                     <Radio value="1">
-                      <FormattedMessage id="form.public.radio.public" />
+                      是
                     </Radio>
                     <Radio value="2">
-                      <FormattedMessage id="form.public.radio.partially-public" />
-                    </Radio>
-                    <Radio value="3">
-                      <FormattedMessage id="form.public.radio.private" />
+                      否
                     </Radio>
                   </Radio.Group>
                 )}
-                <FormItem style={{ marginBottom: 0 }}>
-                  {getFieldDecorator('publicUsers')(
-                    <Select
-                      mode="multiple"
-                      placeholder={formatMessage({ id: 'form.publicUsers.placeholder' })}
-                      style={{
-                        margin: '8px 0',
-                        display: getFieldValue('public') === '2' ? 'block' : 'none',
-                      }}
-                    >
-                      <Option value="1">
-                        <FormattedMessage id="form.publicUsers.option.A" />
-                      </Option>
-                      <Option value="2">
-                        <FormattedMessage id="form.publicUsers.option.B" />
-                      </Option>
-                      <Option value="3">
-                        <FormattedMessage id="form.publicUsers.option.C" />
-                      </Option>
-                    </Select>
-                  )}
-                </FormItem>
               </div>
             </FormItem>
             <FormItem {...submitFormLayout} style={{ marginTop: 32 }}>
