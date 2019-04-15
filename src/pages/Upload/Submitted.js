@@ -1,6 +1,7 @@
 import React, { PureComponent } from 'react';
 import { connect } from 'dva';
-import { formatMessage, FormattedMessage } from 'umi-plugin-react/locale';
+import axios from 'axios';
+import { formatMessage } from 'umi-plugin-react/locale';
 import {
   Form,
   Input,
@@ -16,12 +17,11 @@ import PageHeaderWrapper from '@/components/PageHeaderWrapper';
 
 const FormItem = Form.Item;
 const { TextArea } = Input;
-const {Dragger} = Upload;
+const { Dragger } = Upload;
 const baseUrl = 'http://localhost:8081/';
 
-@connect(({ loading, downlist }) => ({
+@connect(({ downlist }) => ({
   downlist: downlist.list,
-  submitting: loading.effects['form/submitRegularForm'],
 }))
 @Form.create()
 class BasicForms extends PureComponent {
@@ -35,21 +35,30 @@ class BasicForms extends PureComponent {
     })
   }
 
+  // 点击提交按钮触发的事件
   handleSubmit = e => {
-    const { dispatch, form } = this.props;
     e.preventDefault();
+
+    const { form } = this.props;
     form.validateFieldsAndScroll((err, values) => {
       if (!err) {
-        dispatch({
-          type: 'form/submitRegularForm',
-          payload: values,
-        });
+        const option = {
+          url: `${baseUrl}resource/insert`,
+          method: 'post',
+          params: values,
+        };
+        axios(option).then((res) => {
+          message.success('提交成功!');
+          console.log("res:",res)
+        }).catch(error => {
+          message.error('提交失败!');
+          message.error(error.message);
+        })
       }
     });
   };
 
   render() {
-    const { submitting } = this.props;
     const { categoryDown } = this.state;
     const {
       form: { getFieldDecorator },
@@ -113,7 +122,7 @@ class BasicForms extends PureComponent {
               })(<Input placeholder='资源名称' />)}
             </FormItem>
             <FormItem {...formItemLayout} label='资源分类'>
-              {getFieldDecorator('standard', {
+              {getFieldDecorator('category', {
                 rules: [
                   {
                     required: true,
@@ -154,7 +163,7 @@ class BasicForms extends PureComponent {
             <FormItem
               {...formItemLayout}
               label='是否加入推荐'
-              help='是否会展现在推荐页中，需要管理员审核'
+              help='是否会展现在推荐页中，需要管理员审核。'
             >
               <div>
                 {getFieldDecorator('public', {
@@ -172,11 +181,8 @@ class BasicForms extends PureComponent {
               </div>
             </FormItem>
             <FormItem {...submitFormLayout} style={{ marginTop: 32 }}>
-              <Button type="primary" htmlType="submit" loading={submitting}>
-                <FormattedMessage id="form.submit" />
-              </Button>
-              <Button style={{ marginLeft: 8 }}>
-                <FormattedMessage id="form.save" />
+              <Button type="primary" htmlType="submit">
+                提交
               </Button>
             </FormItem>
           </Form>
