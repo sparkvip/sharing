@@ -18,7 +18,6 @@ import PageHeaderWrapper from '@/components/PageHeaderWrapper';
 const FormItem = Form.Item;
 const { TextArea } = Input;
 const { Dragger } = Upload;
-const baseUrl = 'http://localhost:8081/';
 
 @connect(({ downlist }) => ({
   downlist: downlist.list,
@@ -40,16 +39,18 @@ class BasicForms extends PureComponent {
     e.preventDefault();
     const { form } = this.props;
     form.validateFieldsAndScroll((err, values) => {
-      console.log('values', values)
+      // 遍历去除文件名称，存放在数组集合中
+      const fileNameArray = values.file.fileList.map((v) => { return v.name; });
+      // 将file属性制空,path接受文件名称[文件名称用分号隔开]
+      const params = { ...values, file: null, path: fileNameArray.join(';') }
       if (!err) {
         const option = {
           url: `/api/resource/insert`,
           method: 'post',
-          params: values,
+          params,
         };
         axios(option).then((res) => {
           message.success('提交成功!');
-          console.log("res:", res)
         }).catch(error => {
           message.error('提交失败!');
           message.error(error.message);
@@ -86,16 +87,19 @@ class BasicForms extends PureComponent {
     // 上传按钮的属性对象
     const uploadProps = {
       name: 'file',
-      multiple: true,
-      action: `/api/user/test`,
+      multiple: true, // 是否支持多文件上传
+      action: `/api/file/upload`,
       headers: {
         authorization: 'authorization-text',
       },
       onChange(info) {
-        // console.log('action',info)
+        // console.log('info.file.status',info.file.status)
+        // console.log('info',info)
+        // 上传之前调用两次
         if (info.file.status !== 'uploading') {
           // console.log(info.file, info.fileList);
         }
+        // 后台返回数据时调用
         if (info.file.status === 'done') {
           message.success(`${info.file.name} file uploaded successfully`);
         } else if (info.file.status === 'error') {
