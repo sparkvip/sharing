@@ -112,6 +112,12 @@ export default {
   manifest: {
     basePath: '/',
   },
-
   chainWebpack: webpackPlugin,
+  proxy: {
+    '/api/': {  //匹配所有以/api/为开头的接口
+      target: 'http://localhost:8081/', //后端服务器地址
+      changeOrigin: true,  
+      pathRewrite: { '^/api/': '' },  //因为我们项目的接口前面并没有api 所以直接去掉
+    },
+  },
 };

@@ -38,18 +38,18 @@ class BasicForms extends PureComponent {
   // 点击提交按钮触发的事件
   handleSubmit = e => {
     e.preventDefault();
-
     const { form } = this.props;
     form.validateFieldsAndScroll((err, values) => {
+      console.log('values', values)
       if (!err) {
         const option = {
-          url: `${baseUrl}resource/insert`,
+          url: `/api/resource/insert`,
           method: 'post',
           params: values,
         };
         axios(option).then((res) => {
           message.success('提交成功!');
-          console.log("res:",res)
+          console.log("res:", res)
         }).catch(error => {
           message.error('提交失败!');
           message.error(error.message);
@@ -87,7 +87,7 @@ class BasicForms extends PureComponent {
     const uploadProps = {
       name: 'file',
       multiple: true,
-      action: `${baseUrl}user/test`,
+      action: `/api/user/test`,
       headers: {
         authorization: 'authorization-text',
       },
@@ -147,18 +147,20 @@ class BasicForms extends PureComponent {
               )}
             </FormItem>
             <FormItem {...formItemLayout} label='选择文件'>
-              {/* <Upload {...uploadProps}>
-                <Button>
-                  <Icon type="upload" /> 点击上传
-                </Button>
-              </Upload>, */}
-              <Dragger {...uploadProps}>
-                <p className="ant-upload-drag-icon">
-                  <Icon type="inbox" />
-                </p>
-                <p className="ant-upload-text">点击或拖拽文件至此进行上传</p>
-                <p className="ant-upload-hint">支持单个或批量上传！</p>
-              </Dragger>,
+              {getFieldDecorator('file')(
+                <Dragger {...uploadProps}>
+                  <p className="ant-upload-drag-icon">
+                    <Icon type="inbox" />
+                  </p>
+                  <p className="ant-upload-text">点击或拖拽文件至此进行上传</p>
+                  <p className="ant-upload-hint">支持单个或批量上传！</p>
+                </Dragger>
+                // <Upload {...uploadProps}>
+                //   <Button>
+                //     <Icon type="upload" /> 点击上传
+                //   </Button>
+                // </Upload>
+              )}
             </FormItem>
             <FormItem
               {...formItemLayout}
