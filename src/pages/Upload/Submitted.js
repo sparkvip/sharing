@@ -18,6 +18,7 @@ import PageHeaderWrapper from '@/components/PageHeaderWrapper';
 const FormItem = Form.Item;
 const { TextArea } = Input;
 const { Dragger } = Upload;
+const userId = localStorage.getItem("userId");
 
 @connect(({ downlist }) => ({
   downlist: downlist.list,
@@ -42,7 +43,8 @@ class BasicForms extends PureComponent {
       // 遍历去除文件名称，存放在数组集合中
       const fileNameArray = values.file.fileList.map((v) => { return v.name; });
       // 将file属性制空,path接受文件名称[文件名称用分号隔开]
-      const params = { ...values, file: null, path: fileNameArray.join(';') }
+      const params = { ...values, file: null, path: fileNameArray.join(';'), userId }
+      // console.log("params,",params)
       if (!err) {
         const option = {
           url: `/api/resource/insert`,
@@ -51,6 +53,8 @@ class BasicForms extends PureComponent {
         };
         axios(option).then((res) => {
           message.success('提交成功!');
+          // 提交成功进行表单重置
+          form.resetFields();
         }).catch(error => {
           message.error('提交失败!');
           message.error(error.message);
@@ -88,22 +92,26 @@ class BasicForms extends PureComponent {
     const uploadProps = {
       name: 'file',
       multiple: true, // 是否支持多文件上传
-      action: `/api/file/upload`,
+      action: `/api/file/upload?userId=${userId}`,
       headers: {
         authorization: 'authorization-text',
       },
+      date: { userId },
       onChange(info) {
-        // console.log('info.file.status',info.file.status)
-        // console.log('info',info)
+        console.log('info.file', info.file)
         // 上传之前调用两次
         if (info.file.status !== 'uploading') {
           // console.log(info.file, info.fileList);
         }
         // 后台返回数据时调用
         if (info.file.status === 'done') {
-          message.success(`${info.file.name} file uploaded successfully`);
+          if (info.file.response === 'success') {
+            message.success(`${info.file.name} 文件上传成功`);
+            return ;
+          }
+          message.error(`${info.file.name} ${info.file.response}`);
         } else if (info.file.status === 'error') {
-          message.error(`${info.file.name} file upload failed.`);
+          message.error(`${info.file.name} 文件上传失败`);
         }
       },
     };
@@ -172,7 +180,7 @@ class BasicForms extends PureComponent {
               help='是否会展现在推荐页中，需要管理员审核。'
             >
               <div>
-                {getFieldDecorator('public', {
+                {getFieldDecorator('isShared', {
                   initialValue: '1',
                 })(
                   <Radio.Group>

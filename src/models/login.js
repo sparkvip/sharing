@@ -14,14 +14,20 @@ export default {
 
   effects: {
     *login({ payload }, { call, put }) {
+      console.log("payload",payload)
       const response = yield call(fakeAccountLogin, payload);
       yield put({
         type: 'changeLoginStatus',
         payload: response,
       });
+      console.log('response',response)
       // Login successfully
       if (response.status === 'ok') {
+        localStorage.setItem("userId",response.userId);
+        localStorage.setItem("userName",response.userName);
         reloadAuthorized();
+        console.log('localStorage',localStorage.getItem("userId"));
+        console.log('localStorage,userName',localStorage.getItem("userName"));
         const urlParams = new URL(window.location.href);
         const params = getPageQuery();
         let { redirect } = params;
