@@ -118,7 +118,7 @@ export async function updateFakeList(params) {
 
 export async function fakeAccountLogin(params) {
   // return request('/api/login/account', {
-  return request('/api/user/test', {
+  return request('/api/user/login', {
     method: 'POST',
     data: {
       name: params.userName,
@@ -128,7 +128,7 @@ export async function fakeAccountLogin(params) {
 }
 
 export async function fakeRegister(params) {
-  return request('/api/register', {
+  return request('/api/user/register', {
     method: 'POST',
     data: params,
   });

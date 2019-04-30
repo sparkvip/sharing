@@ -107,7 +107,7 @@ class LoginPage extends Component {
               }}
             />
           </Tab>
-          <Tab key="mobile" tab={'手机号登录'}>
+          <Tab key="phone" tab={'手机号登录'}>
             {login.status === 'error' &&
               login.type === 'mobile' &&
               !submitting &&
@@ -115,7 +115,7 @@ class LoginPage extends Component {
                 formatMessage('验证码错误')
               )}
             <Mobile
-              name="mobile"
+              name="phone"
               placeholder={'手机号'}
               rules={[
                 {

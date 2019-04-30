@@ -34,9 +34,10 @@ const passwordProgressMap = {
   poor: 'exception',
 };
 
-@connect(({ register, loading }) => ({
+@connect(({ register, loading, downlist }) => ({
   register,
   submitting: loading.effects['register/submit'],
+  downlist: downlist.list,
 }))
 @Form.create()
 class Register extends Component {
@@ -47,6 +48,14 @@ class Register extends Component {
     help: '',
     prefix: '86',
   };
+
+  // 页面初次加载之前自动调用
+  componentWillMount() {
+    const { downlist: { category } } = this.props;
+    this.setState({
+      categoryDown: category,
+    })
+  }
 
   componentDidUpdate() {
     const { form, register } = this.props;
@@ -101,7 +110,9 @@ class Register extends Component {
             ...values,
             prefix,
           },
-        });
+        }).then((v) => {
+         console.log(v)
+      })
       }
     });
   };
@@ -176,7 +187,7 @@ class Register extends Component {
   render() {
     const { form, submitting } = this.props;
     const { getFieldDecorator } = form;
-    const { count, prefix, help, visible } = this.state;
+    const { count, prefix, help, visible, categoryDown } = this.state;
     return (
       <div className={styles.main}>
         <h3>
@@ -184,21 +195,38 @@ class Register extends Component {
         </h3>
         <Form onSubmit={this.handleSubmit}>
           <FormItem>
-            {getFieldDecorator('mail', {
+            {getFieldDecorator('name', {
               rules: [
                 {
                   required: true,
-                  message: formatMessage({ id: 'validation.email.required' }),
+                  message: '用户名',
                 },
+                // {
+                //   type: 'email',
+                //   message: formatMessage({ id: 'validation.email.wrong-format' }),
+                // },
+              ],
+            })(
+              <Input size="large" placeholder='用户名' />
+            )}
+          </FormItem>
+          <FormItem>
+            {getFieldDecorator('insititute', {
+              rules: [
                 {
-                  type: 'email',
-                  message: formatMessage({ id: 'validation.email.wrong-format' }),
+                  required: true,
+                  message: '学院为必选项',
                 },
               ],
             })(
-              <Input size="large" placeholder={formatMessage({ id: 'form.email.placeholder' })} />
+              <Select placeholder="请选择所属学院" style={{ width: '100%' }}>
+                {categoryDown.map(item => (
+                  <Select.Option key={item.key} value={item.code}>{item.name}</Select.Option>
+                ))}
+              </Select>
             )}
           </FormItem>
+
           <FormItem help={help}>
             <Popover
               getPopupContainer={node => node.parentNode}
@@ -260,7 +288,7 @@ class Register extends Component {
                 <Option value="86">+86</Option>
                 <Option value="87">+87</Option>
               </Select>
-              {getFieldDecorator('mobile', {
+              {getFieldDecorator('phone', {
                 rules: [
                   {
                     required: true,
@@ -280,7 +308,8 @@ class Register extends Component {
               )}
             </InputGroup>
           </FormItem>
-          <FormItem>
+          { // 验证码
+            /* <FormItem>
             <Row gutter={8}>
               <Col span={16}>
                 {getFieldDecorator('captcha', {
@@ -310,7 +339,7 @@ class Register extends Component {
                 </Button>
               </Col>
             </Row>
-          </FormItem>
+          </FormItem> */}
           <FormItem>
             <Button
               size="large"
