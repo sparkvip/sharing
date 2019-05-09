@@ -5,7 +5,7 @@ import {
   Input,
   Form,
   Button,
-  Select
+  Select,
 } from 'antd';
 import axios from 'axios';
 import { connect } from 'dva';
@@ -16,49 +16,47 @@ import { connect } from 'dva';
 @connect(({ chart }) => ({
   chart,
 }))
-class Description extends React.Component {
+class QueriedEdit extends React.Component {
   constructor(props) {
     super(props);
     const { values } = props;
     this.state = {
       values,
-      // 所属学院下拉框
-      categoryDown: [],
-      // 文件类型下拉框
-      fileTypeDown: [],
+      categoryDown:[],
+      fileTypeDown:[]
     }
   }
 
-  // 页面初次加载之前自动调用
-  componentWillMount() {
-    // 获取两个下拉框中的值
-    let option = {
-      url: '/api/code/query',
-      method: 'POST',
-      params: { code: 'category' },
-    }
-    axios(option).then(res => {
-      this.setState({
-        categoryDown: res.data,
-      })
-    }).catch(err => {
-      console.log('err', err)
-    })
-    option = { ...option, params: { code: 'fileType' } }
-    axios(option).then(res => {
-      this.setState({
-        fileTypeDown: res.data,
-      })
-    }).catch(err => {
-      console.log('err', err)
-    })
-  }
+    // 页面初次加载之前自动调用
+    componentWillMount() {
+        let option = {
+          url: '/api/code/query',
+          method: 'POST',
+          params: { code: 'category' },
+        }
+        axios(option).then(res => {
+          this.setState({
+            categoryDown: res.data,
+          })
+        }).catch(err => {
+          console.log('err', err)
+        })
+        option = {...option,params:{code:'fileType'}}
+        axios(option).then(res => {
+          this.setState({
+            fileTypeDown: res.data,
+          })
+        }).catch(err => {
+          console.log('err', err)
+        })
+    
+      }
 
   // 文件下载
   downloadFile = () => {
-    const { values: localValue } = this.state;
+    const {values:localValue} = this.state;
     // console.log('localValue',localValue);
-
+    
     // 可以根据需求传特定的一些参数
     const downloadUrl = '/api/file/download';
     fetch(downloadUrl, {
@@ -83,23 +81,33 @@ class Description extends React.Component {
         window.URL.revokeObjectURL(blobUrl);
       });
     }).catch((error) => {
-      console.log(error);
+       console.log(error);
     });
-
-
 
   }
 
+  // 点击确认按钮触发的事件
+  okHandle = () => {
+    const { form, handleOk } = this.props;
+    const { values: oldValue } = this.state;
+    form.validateFields((err, fieldsValue) => {
+        if (err) {
+            return;
+        }
+        const formVals = { ...oldValue, ...fieldsValue};
+        handleOk(formVals);
+    });
+};
 
   render() {
     const { modalVisible, form: { getFieldDecorator }, handleCancel, title } = this.props;
-    const { values, fileTypeDown, categoryDown } = this.state;
+    const { values,categoryDown,fileTypeDown } = this.state;
     return (
       <Modal
         destroyOnClose
         title={title}
         visible={modalVisible}
-        onOk={handleCancel}
+        onOk={this.okHandle}
         onCancel={handleCancel}
         width={700}
       >
@@ -108,17 +116,17 @@ class Description extends React.Component {
             {getFieldDecorator('name', {
               initialValue: values.name
             })(
-              <Input style={{ color: 'black' }} disabled='true' />
+              <Input style={{ color: 'black' }}  />
             )}
           </Form.Item>
           <Form.Item labelCol={{ span: 6 }} wrapperCol={{ span: 15 }} label='资源分类'>
             {getFieldDecorator('category', {
               initialValue: values.category
             })(
-              <Select placeholder="请选择" style={{ width: '100%', color: 'black' }} disabled='true'>
-                {categoryDown.map(item => (
+              <Select placeholder="请选择">
+                {categoryDown ? categoryDown.map(item => (
                   <Select.Option key={item.id} value={item.code}>{item.name}</Select.Option>
-                ))}
+                  )) : null}
               </Select>
             )}
           </Form.Item>
@@ -126,17 +134,17 @@ class Description extends React.Component {
             {getFieldDecorator('introduction', {
               initialValue: values.introduction
             })(
-              <Input.TextArea style={{ color: 'black' }} rows={4} disabled='true' />
+              <Input.TextArea style={{ color: 'black' , minHeight: 52 }} rows={4} />
             )}
           </Form.Item>
           <Form.Item labelCol={{ span: 6 }} wrapperCol={{ span: 15 }} label='文件类型'>
             {getFieldDecorator('fileType', {
               initialValue: values.fileType
             })(
-              <Select placeholder="请选择" style={{ width: '100%', color: 'black' }}>
-                {fileTypeDown.map(item => (
+              <Select placeholder="请选择">
+                {fileTypeDown ? fileTypeDown.map(item => (
                   <Select.Option key={item.id} value={item.code}>{item.name}</Select.Option>
-                ))}
+                  )) : null}
               </Select>
             )}
           </Form.Item>
@@ -151,7 +159,7 @@ class Description extends React.Component {
             {getFieldDecorator('uploadTime', {
               initialValue: values.uploadTime
             })(
-              <Input style={{ color: 'black' }} disabled='true' />
+              <Input style={{ color: 'black' }} disabled='true'  />
             )}
           </Form.Item>
           <Form.Item style={{ marginLeft: '250px' }} labelCol={{ span: 12 }} wrapperCol={{ span: 15 }}>
@@ -163,4 +171,4 @@ class Description extends React.Component {
     );
   }
 }
-export default (Form.create()(Description));
+export default (Form.create()(QueriedEdit));

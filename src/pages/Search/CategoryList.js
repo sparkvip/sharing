@@ -181,6 +181,13 @@ class CategoryList extends React.Component {
               )}
             </FormItem>
           </Col>
+          <Col span={6}>
+            <FormItem label="资源名称">
+              {getFieldDecorator('name')(
+                <Input placeholder="请输入" />
+              )}
+            </FormItem>
+          </Col>
         </Row>
       </Form>
     );

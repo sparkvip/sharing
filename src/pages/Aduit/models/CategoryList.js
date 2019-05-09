@@ -2,7 +2,7 @@
 import * as categoryList from '../service.js';
 
 export default {
-  namespace: 'resourceList',
+  namespace: 'aduit',
   state: {
     data: [{name:'11'}],
   },

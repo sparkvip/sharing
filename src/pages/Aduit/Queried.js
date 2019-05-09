@@ -73,7 +73,7 @@ class Queried extends React.Component {
     console.log('this.props', this.props)
     const { dispatch } = this.props
     dispatch({
-      type: 'resourceList/queryList',
+      type: 'aduit/queryList',
       payload: { userId },
     });
   };
@@ -100,7 +100,7 @@ class Queried extends React.Component {
 
     // eslint-disable-next-line react/destructuring-assignment
     this.props.dispatch({
-      type: 'resourceList/remove',
+      type: 'aduit/remove',
       payload: selectedRows,
     })
     this.setState({
@@ -117,7 +117,7 @@ class Queried extends React.Component {
   handleOk = fields => {
     // eslint-disable-next-line react/destructuring-assignment
     this.props.dispatch({
-      type: 'resourceList/update',
+      type: 'aduit/update',
       payload: fields,
     });
     this.setState({
@@ -194,22 +194,27 @@ class Queried extends React.Component {
         title: '操作',
         align: 'center',
         render: (text, record) => (
-          <a onClick={() => this.handleUpdate(record)}>编辑</a>
+          <a onClick={() => this.handleUpdate(record)}>查看</a>
         ),
       },
     ]
     return (
       <div>
         <Card
-          title="我的资源列表"
+          title="我的审批列表"
         >
           <div className={styles.tableList}>
             <div className={styles.tableListOperator}>
               <div className={styles.tableButton}>
                 {selectedRows.length > 0 && (
-                  <span>
-                    <Button icon='delete' type="danger" onClick={this.batchDeleteItem} loading={buttonLoading}>批量删除</Button>
-                  </span>
+                  <div>
+                    <span>
+                      <Button icon='check' type="primary" onClick={this.batchDeleteItem} loading={buttonLoading}>同意</Button>
+                    </span>
+                    <span>
+                      <Button icon='close' type="danger" onClick={this.batchDeleteItem} loading={buttonLoading}>拒绝</Button>
+                    </span>
+                  </div>
                 )}
               </div>
               <div className={styles.tableAlert}>
@@ -244,8 +249,8 @@ class Queried extends React.Component {
   }
 }
 const mapStateToProps = (state) => ({
-  categoryList: state.resourceList,
-  loading: state.loading.models.resourceList,
+  categoryList: state.aduit,
+  loading: state.loading.models.aduit,
 });
 export default connect(mapStateToProps)(Form.create()(Queried));
 

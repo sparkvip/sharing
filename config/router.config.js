@@ -43,6 +43,19 @@ export default [
 
         ],
       },
+      // 资源审批
+      {
+        path: '/aduit',
+        icon: 'cloud-upload',
+        name: 'aduit',
+        routes: [
+          {
+            path: '/aduit/queried',
+            name: 'queried',
+            component: './Aduit/Queried',
+          },
+        ],
+      },
       // search分类搜索
       {
         path: '/search',
