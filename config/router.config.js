@@ -35,16 +35,12 @@ export default [
             name: 'analysis',
             component: './Dashboard/Analysis',
           },
-          // {
-          //   path: '/dashboard/monitor',
-          //   name: 'monitor',
-          //   component: './Dashboard/Monitor',
-          // },
-          // {
-          //   path: '/dashboard/workplace',
-          //   name: 'workplace',
-          //   component: './Dashboard/Workplace',
-          // },
+          {
+            path: '/dashboard/description',
+            name: 'description',
+            component: './Dashboard/Description',
+          },
+
         ],
       },
       // search分类搜索

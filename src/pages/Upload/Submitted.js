@@ -20,19 +20,43 @@ const { TextArea } = Input;
 const { Dragger } = Upload;
 const userId = localStorage.getItem("userId");
 
+
 @connect(({ downlist }) => ({
   downlist: downlist.list,
 }))
 @Form.create()
 class BasicForms extends PureComponent {
-
+  constructor(props) {
+    super(props);
+    this.state = {
+      categoryDown:[],
+      fileTypeDown:[]
+    }
+  }
 
   // 页面初次加载之前自动调用
   componentWillMount() {
-    const { downlist: { category } } = this.props;
-    this.setState({
-      categoryDown: category,
+    let option = {
+      url: '/api/code/query',
+      method: 'POST',
+      params: { code: 'category' },
+    }
+    axios(option).then(res => {
+      this.setState({
+        categoryDown: res.data,
+      })
+    }).catch(err => {
+      console.log('err', err)
     })
+    option = {...option,params:{code:'fileType'}}
+    axios(option).then(res => {
+      this.setState({
+        fileTypeDown: res.data,
+      })
+    }).catch(err => {
+      console.log('err', err)
+    })
+
   }
 
   // 点击提交按钮触发的事件
@@ -44,14 +68,13 @@ class BasicForms extends PureComponent {
       const fileNameArray = values.file.fileList.map((v) => { return v.name; });
       // 将file属性制空,path接受文件名称[文件名称用分号隔开]
       const params = { ...values, file: null, path: fileNameArray.join(';'), userId }
-      // console.log("params,",params)
       if (!err) {
         const option = {
           url: `/api/resource/insert`,
           method: 'post',
           params,
         };
-        axios(option).then((res) => {
+        axios(option).then(() => {
           message.success('提交成功!');
           // 提交成功进行表单重置
           form.resetFields();
@@ -64,7 +87,7 @@ class BasicForms extends PureComponent {
   };
 
   render() {
-    const { categoryDown } = this.state;
+    const { categoryDown,fileTypeDown } = this.state;
     const {
       form: { getFieldDecorator },
     } = this.props;
@@ -98,7 +121,7 @@ class BasicForms extends PureComponent {
       },
       date: { userId },
       onChange(info) {
-        console.log('info.file', info.file)
+        // console.log('info.file', info.file)
         // 上传之前调用两次
         if (info.file.status !== 'uploading') {
           // console.log(info.file, info.fileList);
@@ -107,7 +130,7 @@ class BasicForms extends PureComponent {
         if (info.file.status === 'done') {
           if (info.file.response === 'success') {
             message.success(`${info.file.name} 文件上传成功`);
-            return ;
+            return;
           }
           message.error(`${info.file.name} ${info.file.response}`);
         } else if (info.file.status === 'error') {
@@ -143,9 +166,9 @@ class BasicForms extends PureComponent {
                 ],
               })(
                 <Select placeholder="请选择" style={{ width: '100%' }}>
-                  {categoryDown.map(item => (
-                    <Select.Option key={item.key} value={item.code}>{item.name}</Select.Option>
-                  ))}
+                  {categoryDown ? categoryDown.map(item => (
+                    <Select.Option key={item.id} value={item.code}>{item.name}</Select.Option>
+                  )) : null}
                 </Select>
               )}
             </FormItem>
@@ -159,7 +182,14 @@ class BasicForms extends PureComponent {
               )}
             </FormItem>
             <FormItem {...formItemLayout} label='选择文件'>
-              {getFieldDecorator('file')(
+              {getFieldDecorator('file',{
+                rules: [
+                  {
+                    required: true,
+                    message: '文件为必选项',
+                  },
+                ],
+              })(
                 <Dragger {...uploadProps}>
                   <p className="ant-upload-drag-icon">
                     <Icon type="inbox" />
@@ -167,11 +197,22 @@ class BasicForms extends PureComponent {
                   <p className="ant-upload-text">点击或拖拽文件至此进行上传</p>
                   <p className="ant-upload-hint">支持单个或批量上传！</p>
                 </Dragger>
-                // <Upload {...uploadProps}>
-                //   <Button>
-                //     <Icon type="upload" /> 点击上传
-                //   </Button>
-                // </Upload>
+              )}
+            </FormItem>
+            <FormItem {...formItemLayout} label='文件类型'>
+              {getFieldDecorator('fileType', {
+                rules: [
+                  {
+                    required: true,
+                    message: '文件类型为必选项',
+                  },
+                ],
+              })(
+                <Select placeholder="请选择" style={{ width: '100%' }}>
+                  {fileTypeDown ? fileTypeDown.map(item => (
+                    <Select.Option key={item.id} value={item.code}>{item.name}</Select.Option>
+                  )) : null}
+                </Select>
               )}
             </FormItem>
             <FormItem

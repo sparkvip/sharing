@@ -60,14 +60,14 @@ class Register extends Component {
   componentDidUpdate() {
     const { form, register } = this.props;
     const account = form.getFieldValue('mail');
-    if (register.status === 'ok') {
-      router.push({
-        pathname: '/user/register-result',
-        state: {
-          account,
-        },
-      });
-    }
+    // if (register.status === 'ok') {
+    //   router.push({
+    //     pathname: '/user/register-result',
+    //     state: {
+    //       account,
+    //     },
+    //   });
+    // }
   }
 
   componentWillUnmount() {
@@ -110,9 +110,7 @@ class Register extends Component {
             ...values,
             prefix,
           },
-        }).then((v) => {
-         console.log(v)
-      })
+        })
       }
     });
   };

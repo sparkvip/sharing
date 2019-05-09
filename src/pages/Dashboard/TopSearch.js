@@ -1,46 +1,69 @@
 import React, { memo } from 'react';
-import {  Table,  Card,  } from 'antd';
+import { Table, Card } from 'antd';
 import styles from './Analysis.less';
+
+const categoryConst = [
+  { key: 1, code: 'COMPUTER', name: '计算机' },
+  { key: 2, code: 'ENGLISH', name: '英语' },
+  { key: 3, code: 'MATH', name: '数学' },
+  { key: 4, code: 'PHYSICAL', name: '物理' },
+  { key: 5, code: 'CHEMISTRY', name: '化学' }
+]
 
 const columns = [
   {
     title: '排名',
-    dataIndex: 'index',
-    key: 'index',
+    dataIndex: 'resourceIndex',
+    key: 'resourceIndex',
+    align: 'center',
+
   },
   {
     title: '资源名称',
     dataIndex: 'name',
     key: 'name',
-    render: text => <a href="/">{text}</a>,
+    // render: text => <a href="/">{text}</a>,
+    align: 'center',
+
   },
   {
     title: '资源分类',
     dataIndex: 'category',
     key: 'category',
-    // sorter: (a, b) => a.count - b.count,
+    // sorter: (a, b) => a > b,
     className: styles.alignRight,
+    render: text => {
+      const temp = categoryConst.filter(item => {
+        return item.code === text
+      })
+      return temp[0] && temp[0].name
+    },
+    align: 'center',
+
   },
   {
     title: '上传用户',
-    dataIndex: 'username',
-    key: 'username',
-    // sorter: (a, b) => a.range - b.range,
-    // render: (text, record) => (
-    //   <Trend flag={record.status === 1 ? 'down' : 'up'}>
-    //     <span style={{ marginRight: 4 }}>{text}%</span>
-    //   </Trend>
-    // ),
-    align: 'right',
+    dataIndex: 'userName',
+    key: 'userName',
+    align: 'center',
+  },
+  {
+    title: '下载量',
+    dataIndex: 'downloadAmount',
+    key: 'downloadAmount',
+    align: 'center',
   },
 ];
+const pagination = {
+  showSizeChanger: true,
+  showQuickJumper: true,
+}
 
-const TopSearch = memo(({ loading, searchData, dropdownGroup }) => (
+const TopSearch = memo(({ loading, searchData, changeValue }) => (
   <Card
     loading={loading}
     bordered={false}
     title='热门下载'
-    extra={dropdownGroup}
     style={{ marginTop: 24 }}
   >
     <Table
@@ -48,9 +71,11 @@ const TopSearch = memo(({ loading, searchData, dropdownGroup }) => (
       size="small"
       columns={columns}
       dataSource={searchData}
-      pagination={{
-        style: { marginBottom: 0 },
-        pageSize: 5,
+      pagination={pagination}
+      onRow={(record) => { // 行点击事件
+        return {
+          onClick: () => changeValue(record)
+        }
       }}
     />
   </Card>

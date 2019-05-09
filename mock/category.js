@@ -15,7 +15,7 @@ export default {
                 id: i,
                 name: `name${i}`,
                 category: 'DEFAULT',
-                username: 'HAP_PROD_CROSS_DEV	',
+                username: 'HAP_PROD_CROSS_DEV',
                 fileType: 'docx',
             }
             data.push(t)

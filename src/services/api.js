@@ -2,11 +2,17 @@ import { stringify } from 'qs';
 import request from '@/utils/request';
 
 export async function querydownList(params) {
-  return request('/api/sys/downlist/query', {
+  // return request('/api/sys/downlist/query', {
+  //   method: 'POST',
+  //   data: {
+  //     ...params,
+  //     method: 'post',
+  //   },
+  // });
+  return request('/api/code/query', {
     method: 'POST',
     data: {
-      ...params,
-      method: 'post',
+      code: params,
     },
   });
 }
@@ -64,7 +70,10 @@ export async function fakeChartData() {
 }
 
 export async function queryShowData() {
-  return request('/api/chart/queryShowData');
+  return request('/api/resource/query/all');
+}
+export async function download() {
+  return request('/api/file/download');
 }
 
 export async function queryTags() {
@@ -132,6 +141,7 @@ export async function fakeRegister(params) {
     method: 'POST',
     data: params,
   });
+
 }
 
 export async function queryNotices(params = {}) {

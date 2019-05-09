@@ -1,247 +1,259 @@
-import React, { PureComponent } from 'react';
+import React, { Fragment } from 'react';
+import axios from 'axios';
 import { connect } from 'dva';
-import { formatMessage, FormattedMessage } from 'umi-plugin-react/locale';
 import {
+  Table,
+  Modal,
+  Row,
+  Col,
+  Button,
   Form,
   Input,
-  DatePicker,
-  Select,
-  Button,
   Card,
-  InputNumber,
-  Radio,
+  Alert,
+  Dropdown,
+  Select,
   Icon,
-  Tooltip,
+  Badge
 } from 'antd';
-import PageHeaderWrapper from '@/components/PageHeaderWrapper';
 import styles from './style.less';
+import QueriedEdit from './QueriedEdit'
 
-const FormItem = Form.Item;
-const { Option } = Select;
-const { RangePicker } = DatePicker;
-const { TextArea } = Input;
+const userId = localStorage.getItem("userId");
 
-@connect(({ loading }) => ({
-  submitting: loading.effects['form/submitRegularForm'],
-}))
-@Form.create()
-class Queried extends PureComponent {
-  handleSubmit = e => {
-    const { dispatch, form } = this.props;
-    e.preventDefault();
-    form.validateFieldsAndScroll((err, values) => {
-      if (!err) {
-        dispatch({
-          type: 'form/submitRegularForm',
-          payload: values,
-        });
-      }
+class Queried extends React.Component {
+
+  constructor(props) {
+    super(props);
+    this.state = {
+      // 所属学院下拉框
+      categoryDown: [],
+      // 文件类型下拉框
+      fileTypeDown: [],
+      selectedRows: [],
+      selectedRowKeys: [],
+      updateVisible: false,  // 控制编辑按钮弹框是否显示
+      pagination: {
+        showSizeChanger: true,
+        showQuickJumper: true
+      },
+    }
+  }
+
+  // 页面初次加载之前自动调用
+  componentWillMount() {
+    // 获取我的资源列表
+    this.queryList();
+    // 获取两个下拉框中的值
+    this.queryCombox();
+  }
+
+  // 获取两个下拉框中的值
+  queryCombox = () => {
+    let option = {
+      url: '/api/code/query',
+      method: 'POST',
+      params: { code: 'category' },
+    }
+    axios(option).then(res => {
+      this.setState({
+        categoryDown: res.data,
+      })
+    }).catch(err => {
+      console.log('err', err)
+    })
+    option = { ...option, params: { code: 'fileType' } }
+    axios(option).then(res => {
+      this.setState({
+        fileTypeDown: res.data,
+      })
+    }).catch(err => {
+      console.log('err', err)
+    })
+  }
+  // 页面初次加载完成时自动调用
+  // componentDidMount() {
+  //   this.queryList();
+  // }
+
+  // 查询当前用户已上传的资源
+  queryList = () => {
+    console.log('this.props', this.props)
+    const { dispatch } = this.props
+    dispatch({
+      type: 'resourceList/queryList',
+      payload: { userId },
     });
   };
 
+  // 编辑按钮触发事件
+  handleUpdate = (record) => {
+    this.setState({
+      currentValues: record || {},
+      updateVisible: true,
+    });
+  };
+
+  // 勾选变更触发事件
+  onSelectChange = (selectedRowKeys, selectedRows) => {
+    this.setState({ selectedRowKeys, selectedRows });
+  }
+
+  // 批量删除
+  batchDeleteItem = () => {
+
+    this.setState({ buttonLoading: true });
+
+    const { selectedRows } = this.state;
+
+    // eslint-disable-next-line react/destructuring-assignment
+    this.props.dispatch({
+      type: 'resourceList/remove',
+      payload: selectedRows,
+    })
+    this.setState({
+      selectedRows: [],
+      selectedRowKeys: [],
+      buttonLoading: false
+    });
+
+    this.queryList();
+
+  }
+
+  // 编辑页面点击ok的回调
+  handleOk = fields => {
+    // eslint-disable-next-line react/destructuring-assignment
+    this.props.dispatch({
+      type: 'resourceList/update',
+      payload: fields,
+    });
+    this.setState({
+      updateVisible: false,
+      currentValues: {}
+    });
+  };
+
+  // 新建或编辑页面点击cancel的回调
+  handleCancel = () => {
+    this.setState({
+      updateVisible: false,
+      currentValues: {}
+    });
+  }
+
+  // 清除勾选的行
+  cleanSelectedKeys = () => {
+    this.setState({
+      selectedRows: [],
+      selectedRowKeys: []
+    });
+  }
+
   render() {
-    const { submitting } = this.props;
-    const {
-      form: { getFieldDecorator, getFieldValue },
-    } = this.props;
-
-    const formItemLayout = {
-      labelCol: {
-        xs: { span: 24 },
-        sm: { span: 7 },
-      },
-      wrapperCol: {
-        xs: { span: 24 },
-        sm: { span: 12 },
-        md: { span: 10 },
-      },
+    const { categoryList: { data }, loading } = this.props
+    const { pagination, categoryDown, fileTypeDown, selectedRows, selectedRowKeys, buttonLoading, updateVisible, currentValues } = this.state;
+    const rowSelection = {
+      selectedRowKeys,
+      selectedRows,
+      onChange: this.onSelectChange,
     };
-
-    const submitFormLayout = {
-      wrapperCol: {
-        xs: { span: 24, offset: 0 },
-        sm: { span: 10, offset: 7 },
-      },
+    const parentMethods = {
+      handleOk: this.handleOk,
+      handleCancel: this.handleCancel,
     };
-
+    const columns = [
+      {
+        title: '资源名称',
+        dataIndex: 'name',
+        key: 'nameKey',
+        align: 'center',
+      },
+      {
+        title: '所属类别',
+        dataIndex: 'category',
+        render: text => {
+          const temp = categoryDown.filter(item => {
+            return item.code === text
+          })
+          return temp[0] && temp[0].name
+        },
+        align: 'center',
+      },
+      {
+        title: '文件类型',
+        dataIndex: 'fileType',
+        key: 'fileTypeKey',
+        render: text => {
+          const temp = fileTypeDown.filter(item => {
+            return item.code === text
+          })
+          return temp[0] && temp[0].name
+        },
+        align: 'center',
+      },
+      {
+        title: '下载量',
+        dataIndex: 'downloadAmount',
+        key: 'downloadAmountKey',
+        align: 'center',
+      },
+      {
+        title: '操作',
+        align: 'center',
+        render: (text, record) => (
+          <a onClick={() => this.handleUpdate(record)}>编辑</a>
+        ),
+      },
+    ]
     return (
-      <PageHeaderWrapper
-        title={<FormattedMessage id="app.forms.basic.title" />}
-        content={<FormattedMessage id="app.forms.basic.description" />}
-      >
-        <Card bordered={false}>
-          <Form onSubmit={this.handleSubmit} hideRequiredMark style={{ marginTop: 8 }}>
-            <FormItem {...formItemLayout} label={<FormattedMessage id="form.title.label" />}>
-              {getFieldDecorator('title', {
-                rules: [
-                  {
-                    required: true,
-                    message: formatMessage({ id: 'validation.title.required' }),
-                  },
-                ],
-              })(<Input placeholder={formatMessage({ id: 'form.title.placeholder' })} />)}
-            </FormItem>
-            <FormItem {...formItemLayout} label={<FormattedMessage id="form.date.label" />}>
-              {getFieldDecorator('date', {
-                rules: [
-                  {
-                    required: true,
-                    message: formatMessage({ id: 'validation.date.required' }),
-                  },
-                ],
-              })(
-                <RangePicker
-                  style={{ width: '100%' }}
-                  placeholder={[
-                    formatMessage({ id: 'form.date.placeholder.start' }),
-                    formatMessage({ id: 'form.date.placeholder.end' }),
-                  ]}
-                />
-              )}
-            </FormItem>
-            <FormItem {...formItemLayout} label={<FormattedMessage id="form.goal.label" />}>
-              {getFieldDecorator('goal', {
-                rules: [
-                  {
-                    required: true,
-                    message: formatMessage({ id: 'validation.goal.required' }),
-                  },
-                ],
-              })(
-                <TextArea
-                  style={{ minHeight: 32 }}
-                  placeholder={formatMessage({ id: 'form.goal.placeholder' })}
-                  rows={4}
-                />
-              )}
-            </FormItem>
-            <FormItem {...formItemLayout} label={<FormattedMessage id="form.standard.label" />}>
-              {getFieldDecorator('standard', {
-                rules: [
-                  {
-                    required: true,
-                    message: formatMessage({ id: 'validation.standard.required' }),
-                  },
-                ],
-              })(
-                <TextArea
-                  style={{ minHeight: 32 }}
-                  placeholder={formatMessage({ id: 'form.standard.placeholder' })}
-                  rows={4}
-                />
-              )}
-            </FormItem>
-            <FormItem
-              {...formItemLayout}
-              label={
-                <span>
-                  <FormattedMessage id="form.client.label" />
-                  <em className={styles.optional}>
-                    <FormattedMessage id="form.optional" />
-                    <Tooltip title={<FormattedMessage id="form.client.label.tooltip" />}>
-                      <Icon type="info-circle-o" style={{ marginRight: 4 }} />
-                    </Tooltip>
-                  </em>
-                </span>
-              }
-            >
-              {getFieldDecorator('client')(
-                <Input placeholder={formatMessage({ id: 'form.client.placeholder' })} />
-              )}
-            </FormItem>
-            <FormItem
-              {...formItemLayout}
-              label={
-                <span>
-                  <FormattedMessage id="form.invites.label" />
-                  <em className={styles.optional}>
-                    <FormattedMessage id="form.optional" />
-                  </em>
-                </span>
-              }
-            >
-              {getFieldDecorator('invites')(
-                <Input placeholder={formatMessage({ id: 'form.invites.placeholder' })} />
-              )}
-            </FormItem>
-            <FormItem
-              {...formItemLayout}
-              label={
-                <span>
-                  <FormattedMessage id="form.weight.label" />
-                  <em className={styles.optional}>
-                    <FormattedMessage id="form.optional" />
-                  </em>
-                </span>
-              }
-            >
-              {getFieldDecorator('weight')(
-                <InputNumber
-                  placeholder={formatMessage({ id: 'form.weight.placeholder' })}
-                  min={0}
-                  max={100}
-                />
-              )}
-              <span className="ant-form-text">%</span>
-            </FormItem>
-            <FormItem
-              {...formItemLayout}
-              label={<FormattedMessage id="form.public.label" />}
-              help={<FormattedMessage id="form.public.label.help" />}
-            >
-              <div>
-                {getFieldDecorator('public', {
-                  initialValue: '1',
-                })(
-                  <Radio.Group>
-                    <Radio value="1">
-                      <FormattedMessage id="form.public.radio.public" />
-                    </Radio>
-                    <Radio value="2">
-                      <FormattedMessage id="form.public.radio.partially-public" />
-                    </Radio>
-                    <Radio value="3">
-                      <FormattedMessage id="form.public.radio.private" />
-                    </Radio>
-                  </Radio.Group>
+      <div>
+        <Card
+          title="我的资源列表"
+        >
+          <div className={styles.tableList}>
+            <div className={styles.tableListOperator}>
+              <div className={styles.tableButton}>
+                {selectedRows.length > 0 && (
+                  <span>
+                    <Button icon='delete' type="danger" onClick={this.batchDeleteItem} loading={buttonLoading}>批量删除</Button>
+                  </span>
                 )}
-                <FormItem style={{ marginBottom: 0 }}>
-                  {getFieldDecorator('publicUsers')(
-                    <Select
-                      mode="multiple"
-                      placeholder={formatMessage({ id: 'form.publicUsers.placeholder' })}
-                      style={{
-                        margin: '8px 0',
-                        display: getFieldValue('public') === '2' ? 'block' : 'none',
-                      }}
-                    >
-                      <Option value="1">
-                        <FormattedMessage id="form.publicUsers.option.A" />
-                      </Option>
-                      <Option value="2">
-                        <FormattedMessage id="form.publicUsers.option.B" />
-                      </Option>
-                      <Option value="3">
-                        <FormattedMessage id="form.publicUsers.option.C" />
-                      </Option>
-                    </Select>
-                  )}
-                </FormItem>
               </div>
-            </FormItem>
-            <FormItem {...submitFormLayout} style={{ marginTop: 32 }}>
-              <Button type="primary" htmlType="submit" loading={submitting}>
-                <FormattedMessage id="form.submit" />
-              </Button>
-              <Button style={{ marginLeft: 8 }}>
-                <FormattedMessage id="form.save" />
-              </Button>
-            </FormItem>
-          </Form>
+              <div className={styles.tableAlert}>
+                <Alert
+                  message={
+                    <Fragment>
+                      已选择 <a style={{ fontWeight: 600 }}>{selectedRowKeys.length}</a> 项
+                      <a onClick={this.cleanSelectedKeys} style={{ marginLeft: 24 }}>清空</a>
+                    </Fragment>
+                  }
+                  type="info"
+                  showIcon
+                />
+              </div>
+              <Table
+                style={{ align: 'center' }}
+                pagination={pagination}
+                loading={loading}
+                rowSelection={rowSelection}
+                dataSource={data}
+                columns={columns}
+              />
+              {
+                updateVisible ? (
+                  <QueriedEdit {...parentMethods} modalVisible={updateVisible} values={currentValues} />) : null
+              }
+            </div>
+          </div>
         </Card>
-      </PageHeaderWrapper>
+      </div>
     );
   }
 }
+const mapStateToProps = (state) => ({
+  categoryList: state.resourceList,
+  loading: state.loading.models.resourceList,
+});
+export default connect(mapStateToProps)(Form.create()(Queried));
 
-export default Queried;

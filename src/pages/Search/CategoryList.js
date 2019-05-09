@@ -1,4 +1,5 @@
 import React from 'react';
+import axios from 'axios';
 import { connect } from 'dva';
 import {
   Table,
@@ -12,6 +13,7 @@ import {
   Icon
 } from 'antd';
 import styles from './CategoryList.less';
+import  Description from '../Dashboard/Description'
 
 const FormItem = Form.Item;
 
@@ -20,48 +22,58 @@ class CategoryList extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
+      // 所属学院下拉框
+      categoryDown: [],
+      // 文件类型下拉框
+      fileTypeDown: [],
+      descriptionShow: false,   // 控制资源详情页面是否显示
+      currentValues: {}, // 弹框时传递的值
       pagination: {
         showSizeChanger: true,
         showQuickJumper: true
       },
       expand: false, // 更多查询是否显示
-      columns: [
-        {
-          title: '资源名称',
-          dataIndex: 'name',
-          key: 'nameKey',
-        },
-        {
-          title: '所属类别',
-          dataIndex: 'category',
-          key: 'categoryKey',
-        },
-        {
-          title: '上传用户',
-          dataIndex: 'userName',
-          key: 'userNameKey',
-        },
-        {
-          title: '文件类型',
-          dataIndex: 'fileType',
-          key: 'fileTypeKey',
-        },
-      ]
+
     }
   }
 
   // 页面初次加载之前自动调用
   componentWillMount() {
-    const { downlist: { category, fileType } } = this.props;
-    this.setState({
-      categoryDown: category,
-      fileTypeDown: fileType,
+
+    // 获取两个下拉框中的值
+    let option = {
+      url: '/api/code/query',
+      method: 'POST',
+      params: { code: 'category' },
+    }
+    axios(option).then(res => {
+      this.setState({
+        categoryDown: res.data,
+      })
+    }).catch(err => {
+      console.log('err', err)
+    })
+    option = { ...option, params: { code: 'fileType' } }
+    axios(option).then(res => {
+      this.setState({
+        fileTypeDown: res.data,
+      })
+    }).catch(err => {
+      console.log('err', err)
     })
   }
 
   // 页面初次加载完成时自动调用
   componentDidMount() {
     this.queryAllList();
+  }
+
+  // 更改选中行的值
+  changeValue = (values) => {
+    // console.log('更改选中行的值',values)
+    this.setState(
+      { currentValues: values, descriptionShow: true }
+    );
   }
 
   // 条件查询
@@ -101,6 +113,14 @@ class CategoryList extends React.Component {
 
   };
 
+  // 页面点击cancel的回调
+  handleCancel = () => {
+    this.setState({
+      descriptionShow: false,
+      currentValues: {}
+  });
+  }
+
   // form表单重置
   handleFormReset = () => {
     const { form } = this.props;
@@ -123,7 +143,7 @@ class CategoryList extends React.Component {
               {getFieldDecorator('category')(
                 <Select placeholder="请选择" style={{ width: '100%' }}>
                   {categoryDown.map(item => (
-                    <Select.Option key={item.key} value={item.code}>{item.name}</Select.Option>
+                    <Select.Option key={item.id} value={item.code}>{item.name}</Select.Option>
                   ))}
                 </Select>
               )}
@@ -155,7 +175,7 @@ class CategoryList extends React.Component {
               {getFieldDecorator('fileType')(
                 <Select placeholder="请选择" style={{ width: '100%' }}>
                   {fileTypeDown.map(item => (
-                    <Select.Option key={item.key} value={item.code}>{item.name}</Select.Option>
+                    <Select.Option key={item.id} value={item.code}>{item.name}</Select.Option>
                   ))}
                 </Select>
               )}
@@ -168,7 +188,53 @@ class CategoryList extends React.Component {
 
   render() {
     const { categoryList: { data }, loading } = this.props
-    const { pagination, columns } = this.state;
+    const { pagination, categoryDown, fileTypeDown,descriptionShow ,currentValues} = this.state;
+    const parentMethods = {
+      handleCancel: this.handleCancel,
+    };
+    const columns = [
+      {
+        title: '资源名称',
+        dataIndex: 'name',
+        key: 'nameKey',
+        align: 'center',
+      },
+      {
+        title: '所属类别',
+        dataIndex: 'category',
+        render: text => {
+          const temp = categoryDown.filter(item => {
+            return item.code === text
+          })
+          return temp[0] && temp[0].name
+        },
+        align: 'center',
+      },
+      {
+        title: '上传用户',
+        dataIndex: 'userName',
+        key: 'userNameKey',
+        align: 'center',
+      },
+      {
+        title: '文件类型',
+        dataIndex: 'fileType',
+        key: 'fileTypeKey',
+        render: text => {
+          const temp = fileTypeDown.filter(item => {
+            return item.code === text
+          })
+          return temp[0] && temp[0].name
+        },
+        align: 'center',
+      },
+      {
+        title: '下载量',
+        dataIndex: 'downloadAmount',
+        key: 'downloadAmountKey',
+        align: 'center',
+      },
+    ]
     return (
       <div>
         <Card bordered={false}>
@@ -181,7 +247,17 @@ class CategoryList extends React.Component {
                 loading={loading}
                 dataSource={data}
                 columns={columns}
+                onRow={(record) => { // 行点击事件
+                  return {
+                    onClick: () => this.changeValue(record)
+                  }
+                }
+                }
               />
+              {
+                descriptionShow ? (
+                  <Description {...parentMethods} modalVisible={descriptionShow} values={currentValues} title='详情页' />) : null
+              }
             </div>
           </div>
         </Card>
@@ -192,7 +268,6 @@ class CategoryList extends React.Component {
 
 const mapStateToProps = (state) => ({
   categoryList: state.categoryList,
-  downlist: state.downlist.list,
   loading: state.loading.models.categoryList,
 });
 export default connect(mapStateToProps)(Form.create()(CategoryList));

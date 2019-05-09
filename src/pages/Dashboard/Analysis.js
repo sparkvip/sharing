@@ -1,22 +1,37 @@
 import React, { Component, Suspense } from 'react';
 import { connect } from 'dva';
 import GridContent from '@/components/PageHeaderWrapper/GridContent';
-import { getTimeDistance } from '@/utils/utils';
 import styles from './Analysis.less';
 import PageLoading from '@/components/PageLoading';
+import Description from './Description';
 
 const IntroduceRow = React.lazy(() => import('./IntroduceRow'));
 const TopSearch = React.lazy(() => import('./TopSearch'));
+
 
 @connect(({ chart, loading }) => ({
   chart,
   loading: loading.effects['chart/fetch'],
 }))
 class Analysis extends Component {
-  state = {
-    rangePickerValue: getTimeDistance('year'),
-  };
 
+  constructor(props) {
+    super(props);
+    this.state = {
+      descriptionShow: false,   // 控制资源详情页面是否显示
+      currentValues: {}, // 弹框时传递的值
+    }
+  }
+
+  // 在渲染前调用
+  componentWillMount() {
+    const { dispatch } = this.props;
+    dispatch({
+      type: 'chart/queryShowData',
+    });
+  }
+
+  // 在第一次渲染后调用
   componentDidMount() {
     const { dispatch } = this.props;
     this.reqRef = requestAnimationFrame(() => {
@@ -24,8 +39,10 @@ class Analysis extends Component {
         type: 'chart/fetch',
       });
     });
+
   }
 
+  // 在组件从 DOM 中移除之前立刻被调用。 
   componentWillUnmount() {
     const { dispatch } = this.props;
     dispatch({
@@ -34,49 +51,32 @@ class Analysis extends Component {
     cancelAnimationFrame(this.reqRef);
   }
 
-  handleRangePickerChange = rangePickerValue => {
-    const { dispatch } = this.props;
+  // 更改选中行的值
+  changeValue = (values) => {
+    // console.log('更改选中行的值',values)
+    this.setState(
+      { currentValues: values, descriptionShow: true }
+    );
+  }
+
+  // 页面点击cancel的回调
+  handleCancel = () => {
     this.setState({
-      rangePickerValue,
-    });
-
-    dispatch({
-      type: 'chart/fetchSalesData',
-    });
-  };
-
-  selectDate = type => {
-    const { dispatch } = this.props;
-    this.setState({
-      rangePickerValue: getTimeDistance(type),
-    });
-
-    dispatch({
-      type: 'chart/fetchSalesData',
-    });
-  };
-
-  isActive = type => {
-    const { rangePickerValue } = this.state;
-    const value = getTimeDistance(type);
-    if (!rangePickerValue[0] || !rangePickerValue[1]) {
-      return '';
-    }
-    if (
-      rangePickerValue[0].isSame(value[0], 'day') &&
-      rangePickerValue[1].isSame(value[1], 'day')
-    ) {
-      return styles.currentDate;
-    }
-    return '';
-  };
+      descriptionShow: false,
+      currentValues: {}
+  });
+  }
 
   render() {
     const { chart, loading } = this.props;
+    const { descriptionShow, currentValues } = this.state
+    const parentMethods = {
+      handleOk: this.handleOk,
+      handleCancel: this.handleCancel,
+    };
     const {
       visitData,
-      visitData2,
-      searchData,
+      showData
     } = chart;
 
     return (
@@ -90,15 +90,18 @@ class Analysis extends Component {
         <div className={styles.twoColLayout}>
           <Suspense fallback={null}>
             <TopSearch
+              changeValue={this.changeValue}
               loading={loading}
-              visitData2={visitData2}
-              selectDate={this.selectDate}
-              searchData={searchData}
+              searchData={showData}
             />
           </Suspense>
         </div>
+        {
+          descriptionShow ? (
+            <Description {...parentMethods} modalVisible={descriptionShow} values={currentValues} title='详情页' />) : null
+        }
       </GridContent>
-    );
+    )
   }
 }
 
