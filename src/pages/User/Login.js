@@ -107,8 +107,8 @@ class LoginPage extends Component {
               }}
             />
           </Tab>
-          <Tab key="phone" tab={'手机号登录'}>
-            {login.status === 'error' &&
+          {/* <Tab key="phone"> */}
+          {/* {login.status === 'error' &&
               login.type === 'mobile' &&
               !submitting &&
               this.renderMessage(
@@ -141,15 +141,15 @@ class LoginPage extends Component {
                   message: '请输入验证码',
                 },
               ]}
-            />
-          </Tab>
+            /> */}
+          {/* </Tab> */}
           <div>
             <Checkbox checked={autoLogin} onChange={this.changeAutoLogin}>
               自动登录
             </Checkbox>
-            <a style={{ float: 'right' }} href="">
+            {/* <a style={{ float: 'right' }} href="">
               忘记密码
-            </a>
+            </a> */}
           </div>
           <Submit loading={submitting}>
             登录

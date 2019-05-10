@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import { connect } from 'dva';
 import { formatMessage, FormattedMessage } from 'umi-plugin-react/locale';
 import Link from 'umi/link';
+import axios from 'axios';
 import router from 'umi/router';
 import { Form, Input, Button, Select, Row, Col, Popover, Progress } from 'antd';
 import styles from './Register.less';
@@ -51,10 +52,22 @@ class Register extends Component {
 
   // 页面初次加载之前自动调用
   componentWillMount() {
-    const { downlist: { category } } = this.props;
-    this.setState({
-      categoryDown: category,
+  //  const { downlist: { category } } = this.props;
+    const option = {
+      url: '/api/code/query',
+      method: 'POST',
+      params: { code: 'category' },
+    }
+    axios(option).then(res => {
+      this.setState({
+        categoryDown: res.data,
+      })
+    }).catch(err => {
+      console.log('err', err)
     })
+    // this.setState({
+    //   categoryDown: category,
+    // })
   }
 
   componentDidUpdate() {
@@ -218,7 +231,7 @@ class Register extends Component {
               ],
             })(
               <Select placeholder="请选择所属学院" style={{ width: '100%' }}>
-                {categoryDown.map(item => (
+                {categoryDown && categoryDown.map(item => (
                   <Select.Option key={item.key} value={item.code}>{item.name}</Select.Option>
                 ))}
               </Select>
