@@ -87,6 +87,24 @@ export default [
           },
         ],
       },
+        // 资源上传
+       {
+        path: '/friend',
+        icon: 'table',
+        name: '好友管理',
+        routes: [
+          {
+            path: '/friend/query',
+            name: 'friendquery',
+            component: './Friend/Queried',
+          },
+          {
+            path: '/friend/add',
+            name: '添加好友',
+            component: './Friend/Add',
+          },
+        ],
+      },
       // forms
       {
         path: '/form',
@@ -279,18 +297,10 @@ export default [
             ],
           },
           {
-            path: '/account/settings',
+            path: '/account/settings/base',
             name: 'settings',
-            component: './Account/Settings/Info',
+            component: './Account/Settings/BaseView',
             routes: [
-              {
-                path: '/account/settings',
-                redirect: '/account/settings/base',
-              },
-              {
-                path: '/account/settings/base',
-                component: './Account/Settings/BaseView',
-              },
               {
                 path: '/account/settings/security',
                 component: './Account/Settings/SecurityView',

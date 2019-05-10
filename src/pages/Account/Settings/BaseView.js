@@ -1,189 +1,163 @@
-import React, { Component, Fragment } from 'react';
+/* eslint-disable no-console */
+import React, { Component} from 'react';
 import { formatMessage, FormattedMessage } from 'umi-plugin-react/locale';
-import { Form, Input, Upload, Select, Button } from 'antd';
+import { Form, Input, Select, Button ,message} from 'antd';
 import { connect } from 'dva';
+import axios from 'axios';
 import styles from './BaseView.less';
-import GeographicView from './GeographicView';
-import PhoneView from './PhoneView';
 // import { getTimeDistance } from '@/utils/utils';
 
+const InputGroup = Input.Group;
 const FormItem = Form.Item;
 const { Option } = Select;
+const userId = localStorage.getItem("userId");
 
-// 头像组件 方便以后独立，增加裁剪之类的功能
-const AvatarView = ({ avatar }) => (
-  <Fragment>
-    <div className={styles.avatar_title}>
-      <FormattedMessage id="app.settings.basic.avatar" defaultMessage="Avatar" />
-    </div>
-    <div className={styles.avatar}>
-      <img src={avatar} alt="avatar" />
-    </div>
-    <Upload fileList={[]}>
-      <div className={styles.button_view}>
-        <Button icon="upload">
-          <FormattedMessage id="app.settings.basic.change-avatar" defaultMessage="Change avatar" />
-        </Button>
-      </div>
-    </Upload>
-  </Fragment>
-);
-
-const validatorGeographic = (rule, value, callback) => {
-  const { province, city } = value;
-  if (!province.key) {
-    callback('Please input your province!');
-  }
-  if (!city.key) {
-    callback('Please input your city!');
-  }
-  callback();
-};
-
-const validatorPhone = (rule, value, callback) => {
-  const values = value.split('-');
-  if (!values[0]) {
-    callback('Please input your area code!');
-  }
-  if (!values[1]) {
-    callback('Please input your phone number!');
-  }
-  callback();
-};
-
-@connect(({ user }) => ({
-  currentUser: user.currentUser,
-}))
 @Form.create()
 class BaseView extends Component {
-  componentDidMount() {
-    this.setBaseInfo();
-  }
-
-  setBaseInfo = () => {
-    const { currentUser, form } = this.props;
-    Object.keys(form.getFieldsValue()).forEach(key => {
-      const obj = {};
-      obj[key] = currentUser[key] || null;
-      form.setFieldsValue(obj);
-    });
-  };
-
-  getAvatarURL() {
-    const { currentUser } = this.props;
-    if (currentUser.avatar) {
-      return currentUser.avatar;
+  constructor(props) {
+    super(props);
+    this.state = {
+      categoryDown: [],
+      values: {}
     }
-    const url = 'https://gw.alipayobjects.com/zos/antfincdn/XAosXuNZyF/BiazfanxmamNRoxxVxka.png';
-    return url;
   }
 
-  getViewDom = ref => {
-    this.view = ref;
-  };
+  // 页面初次加载之前自动调用
+  componentWillMount() {
+    const option = {
+      url: '/api/code/query',
+      method: 'POST',
+      params: { code: 'category' },
+    }
+    axios(option).then(res => {
+      this.setState({
+        categoryDown: res.data,
+      })
+    }).catch(err => {
+      console.log('err', err)
+    })
+    const option2 = {
+      url: '/api/user/query',
+      method: 'POST',
+      params: { id: userId },
+    }
+    axios(option2).then(res => {
+      this.setState({
+        values: res.data
+      })
+    }).catch(err => {
+      console.log('err', err)
+    })
+  }
+
+  handleUpdate = ()  => {
+    const { form } = this.props;
+    form.validateFields((err, fieldsValue) => {
+      if (err) {
+        return;
+      }
+      const option2 = {
+        url: '/api/user/update',
+        method: 'POST',
+        params: {...fieldsValue,id:userId},
+      }
+      axios(option2)
+      message.success('更新成功')
+    });
+
+   
+  }
 
   render() {
     const {
       form: { getFieldDecorator },
     } = this.props;
+    const { categoryDown, values } = this.state;
     return (
-      <div className={styles.baseView} ref={this.getViewDom}>
-        <div className={styles.left}>
-          <Form layout="vertical" onSubmit={this.handleSubmit} hideRequiredMark>
-            <FormItem label={formatMessage({ id: 'app.settings.basic.email' })}>
-              {getFieldDecorator('email', {
+      <div style={{ marginLeft: '500px' }} className={styles.baseView} ref={this.getViewDom}>
+        <Form layout="vertical" onSubmit={this.handleSubmit} hideRequiredMark>
+          <FormItem label='用户名'>
+            {getFieldDecorator('name', {
+              initialValue: values.name,
+              rules: [
+                {
+                  required: true,
+                  message: '用户名',
+                },
+              ],
+            })(
+              <Input size="large" placeholder='用户名' style={{ color: 'black' }} disabled='true' />
+            )}
+          </FormItem>
+          <FormItem label='所属学院'>
+            {getFieldDecorator('insititute', {
+              initialValue: values.insititute,
+              rules: [
+                {
+                  required: true,
+                  message: '学院为必选项',
+                },
+              ],
+            })(
+              <Select placeholder="请选择所属学院" style={{ width: '100%' }}>
+                {categoryDown && categoryDown.map(item => (
+                  <Select.Option key={item.key} value={item.code}>{item.name}</Select.Option>
+                ))}
+              </Select>
+            )}
+          </FormItem>
+
+          <FormItem label='修改密码'>
+            {getFieldDecorator('password', {
+              rules: [
+                {
+                  message: formatMessage({ id: 'validation.confirm-password.required' }),
+                },
+              ],
+            })(
+              <Input
+                size="large"
+                type="password"
+                placeholder={formatMessage({ id: 'form.confirm-password.placeholder' })}
+              />
+            )}
+          </FormItem>
+          <FormItem label='手机号码'>
+            <InputGroup compact>
+              <Select
+                size="large"
+                value="86"
+                onChange={this.changePrefix}
+                style={{ width: '20%' }}
+              >
+                <Option value="86">+86</Option>
+                <Option value="87">+87</Option>
+              </Select>
+              {getFieldDecorator('phone', {
+                initialValue: values.phone,
                 rules: [
                   {
                     required: true,
-                    message: formatMessage({ id: 'app.settings.basic.email-message' }, {}),
+                    message: formatMessage({ id: 'validation.phone-number.required' }),
                   },
-                ],
-              })(<Input />)}
-            </FormItem>
-            <FormItem label={formatMessage({ id: 'app.settings.basic.nickname' })}>
-              {getFieldDecorator('name', {
-                rules: [
                   {
-                    required: true,
-                    message: formatMessage({ id: 'app.settings.basic.nickname-message' }, {}),
-                  },
-                ],
-              })(<Input />)}
-            </FormItem>
-            <FormItem label={formatMessage({ id: 'app.settings.basic.profile' })}>
-              {getFieldDecorator('profile', {
-                rules: [
-                  {
-                    required: true,
-                    message: formatMessage({ id: 'app.settings.basic.profile-message' }, {}),
+                    pattern: /^\d{11}$/,
+                    message: formatMessage({ id: 'validation.phone-number.wrong-format' }),
                   },
                 ],
               })(
-                <Input.TextArea
-                  placeholder={formatMessage({ id: 'app.settings.basic.profile-placeholder' })}
-                  rows={4}
+                <Input
+                  size="large"
+                  style={{ width: '80%' }}
+                  placeholder={formatMessage({ id: 'form.phone-number.placeholder' })}
                 />
               )}
-            </FormItem>
-            <FormItem label={formatMessage({ id: 'app.settings.basic.country' })}>
-              {getFieldDecorator('country', {
-                rules: [
-                  {
-                    required: true,
-                    message: formatMessage({ id: 'app.settings.basic.country-message' }, {}),
-                  },
-                ],
-              })(
-                <Select style={{ maxWidth: 220 }}>
-                  <Option value="China">中国</Option>
-                </Select>
-              )}
-            </FormItem>
-            <FormItem label={formatMessage({ id: 'app.settings.basic.geographic' })}>
-              {getFieldDecorator('geographic', {
-                rules: [
-                  {
-                    required: true,
-                    message: formatMessage({ id: 'app.settings.basic.geographic-message' }, {}),
-                  },
-                  {
-                    validator: validatorGeographic,
-                  },
-                ],
-              })(<GeographicView />)}
-            </FormItem>
-            <FormItem label={formatMessage({ id: 'app.settings.basic.address' })}>
-              {getFieldDecorator('address', {
-                rules: [
-                  {
-                    required: true,
-                    message: formatMessage({ id: 'app.settings.basic.address-message' }, {}),
-                  },
-                ],
-              })(<Input />)}
-            </FormItem>
-            <FormItem label={formatMessage({ id: 'app.settings.basic.phone' })}>
-              {getFieldDecorator('phone', {
-                rules: [
-                  {
-                    required: true,
-                    message: formatMessage({ id: 'app.settings.basic.phone-message' }, {}),
-                  },
-                  { validator: validatorPhone },
-                ],
-              })(<PhoneView />)}
-            </FormItem>
-            <Button type="primary">
-              <FormattedMessage
-                id="app.settings.basic.update"
-                defaultMessage="Update Information"
-              />
-            </Button>
-          </Form>
-        </div>
-        <div className={styles.right}>
-          <AvatarView avatar={this.getAvatarURL()} />
-        </div>
+            </InputGroup>
+          </FormItem>
+          <Button type="primary" onClick={this.handleUpdate}>
+            更新基本信息
+          </Button>
+        </Form>
       </div>
     );
   }

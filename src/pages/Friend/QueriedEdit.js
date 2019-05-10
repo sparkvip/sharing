@@ -1,6 +1,3 @@
-/* eslint-disable react/no-access-state-in-setstate */
-/* eslint-disable react/destructuring-assignment */
-/* eslint-disable react/no-unused-state */
 /* eslint-disable jsx-a11y/anchor-has-content */
 import React from 'react';
 import {
@@ -8,80 +5,31 @@ import {
   Input,
   Form,
   Button,
+  Radio,
   Select,
-  Rate,
-  Icon,
-  Avatar,
-  Comment, Tooltip, List
 } from 'antd';
-import moment from 'moment';
 import axios from 'axios';
 import { connect } from 'dva';
 
-const { TextArea } = Input;
-const localUserName = localStorage.getItem("userName");
-
-
-const CommentList = ({ comments }) => (
-  <List
-    dataSource={comments}
-    header={`${comments.length} ${comments.length > 1 ? 'replies' : 'reply'}`}
-    itemLayout="horizontal"
-    renderItem={props => <Comment {...props} />}
-  />
-);
-
-const Editor = ({
-  onChange, onSubmit, submitting, value,
-}) => (
-  <div>
-    <Form.Item>
-      <TextArea rows={4} onChange={onChange} value={value} />
-    </Form.Item>
-    <Form.Item>
-      <Button
-        htmlType="submit"
-        loading={submitting}
-        onClick={onSubmit}
-        type="primary"
-      >
-          添加评论
-      </Button>
-    </Form.Item>
-  </div>
-  );
 
 // context设置页面中新增和编辑的弹窗
 @Form.create()
 @connect(({ chart }) => ({
   chart,
 }))
-class Description extends React.Component {
+class QueriedEdit extends React.Component {
   constructor(props) {
     super(props);
     const { values } = props;
     this.state = {
-      comments: [
-      //   {
-      //   author: '李锦',
-      //   avatar: 'https://zos.alipayobjects.com/rmsportal/ODTLcjxAfvqbxHnVXCYX.png',
-      //   content: '这个资源真不错',
-      //   datetime: '2019-5-10',
-      // },
-    ],
-      submitting: false,
-      value: '',
       values,
-      // 所属学院下拉框
       categoryDown: [],
-      // 文件类型下拉框
-      fileTypeDown: [],
+      fileTypeDown: []
     }
   }
 
   // 页面初次加载之前自动调用
   componentWillMount() {
-    // 获取两个下拉框中的值
     let option = {
       url: '/api/code/query',
       method: 'POST',
@@ -103,62 +51,6 @@ class Description extends React.Component {
       console.log('err', err)
     })
 
-    // 查询评论
-    const option2 = {
-      url: '/api/comment/query',
-      method: 'POST',
-      params:{id:this.state.values.id},
-    }
-    axios(option2).then(res => {
-      console.log('res',res);
-      this.setState({
-        comments: res.data,
-      })
-      console.log('state',this.state);
-    })
-  }
-
-  handleSubmit = () => {
-    if (!this.state.value) {
-      return;
-    }
-
-    this.setState({
-      submitting: true,
-    });
-    const comment = {
-      author: localUserName,
-      avatar: 'https://zos.alipayobjects.com/rmsportal/ODTLcjxAfvqbxHnVXCYX.png',
-      content: this.state.value,
-      datetime: moment().fromNow(),
-    }
-    setTimeout(() => {
-      this.setState({
-        submitting: false,
-        value: '',
-        comments: [
-          comment,
-          ...this.state.comments,
-        ],
-      });
-    }, 300);
-    console.log('comment',{...comment,datetime: null,resourceId:this.state.values.id})
-
-    // 上传评论
-    const option = {
-      url: '/api/comment/insert',
-      method: 'POST',
-      params:{...comment,datetime: null,resourceId:this.state.values.id},
-    }
-    axios(option).then(res => {
-      console.log(res.data);
-      })
-  }
-
-  handleChange = (e) => {
-    this.setState({
-      value: e.target.value,
-    });
   }
 
   // 文件下载
@@ -192,19 +84,31 @@ class Description extends React.Component {
     }).catch((error) => {
       console.log(error);
     });
+
   }
 
+  // 点击确认按钮触发的事件
+  okHandle = () => {
+    const { form, handleOk } = this.props;
+    const { values: oldValue } = this.state;
+    form.validateFields((err, fieldsValue) => {
+      if (err) {
+        return;
+      }
+      const formVals = { ...oldValue, ...fieldsValue };
+      handleOk(formVals);
+    });
+  };
 
   render() {
     const { modalVisible, form: { getFieldDecorator }, handleCancel, title } = this.props;
-    const { values, fileTypeDown, categoryDown, comments, submitting, value } = this.state;
-  
+    const { values, categoryDown, fileTypeDown } = this.state;
     return (
       <Modal
         destroyOnClose
         title={title}
         visible={modalVisible}
-        onOk={handleCancel}
+        onOk={this.okHandle}
         onCancel={handleCancel}
         width={700}
       >
@@ -213,17 +117,17 @@ class Description extends React.Component {
             {getFieldDecorator('name', {
               initialValue: values.name
             })(
-              <Input style={{ color: 'black' }} disabled='true' />
+              <Input style={{ color: 'black' }} />
             )}
           </Form.Item>
           <Form.Item labelCol={{ span: 6 }} wrapperCol={{ span: 15 }} label='资源分类'>
             {getFieldDecorator('category', {
               initialValue: values.category
             })(
-              <Select placeholder="请选择" style={{ width: '100%', color: 'black' }} disabled='true'>
-                {categoryDown.map(item => (
+              <Select placeholder="请选择">
+                {categoryDown ? categoryDown.map(item => (
                   <Select.Option key={item.id} value={item.code}>{item.name}</Select.Option>
-                ))}
+                )) : null}
               </Select>
             )}
           </Form.Item>
@@ -231,17 +135,17 @@ class Description extends React.Component {
             {getFieldDecorator('introduction', {
               initialValue: values.introduction
             })(
-              <Input.TextArea style={{ color: 'black' }} rows={4} disabled='true' />
+              <Input.TextArea style={{ color: 'black', minHeight: 52 }} rows={4} />
             )}
           </Form.Item>
           <Form.Item labelCol={{ span: 6 }} wrapperCol={{ span: 15 }} label='文件类型'>
             {getFieldDecorator('fileType', {
               initialValue: values.fileType
             })(
-              <Select placeholder="请选择" disabled='true' style={{ width: '100%', color: 'black' }}>
-                {fileTypeDown.map(item => (
+              <Select placeholder="请选择">
+                {fileTypeDown ? fileTypeDown.map(item => (
                   <Select.Option key={item.id} value={item.code}>{item.name}</Select.Option>
-                ))}
+                )) : null}
               </Select>
             )}
           </Form.Item>
@@ -259,11 +163,32 @@ class Description extends React.Component {
               <Input style={{ color: 'black' }} disabled='true' />
             )}
           </Form.Item>
-          <Form.Item labelCol={{ span: 6 }} wrapperCol={{ span: 15 }} label='评分'>
-            {getFieldDecorator('attribute1', {
-              initialValue: values.attribute1
+          <Form.Item labelCol={{ span: 6 }} wrapperCol={{ span: 15 }} label='是否加入推荐'>
+            {getFieldDecorator('isShared', {
+              initialValue: values.isShared
             })(
-              <Rate />
+              <Radio.Group>
+                <Radio value="1">
+                  是
+                </Radio>
+                <Radio value="0">
+                  否
+                </Radio>
+              </Radio.Group>
+            )}
+          </Form.Item>
+          <Form.Item labelCol={{ span: 6 }} wrapperCol={{ span: 15 }} label='是否公开'>
+            {getFieldDecorator('attribute2', {
+              initialValue: values.attribute2
+            })(
+              <Radio.Group>
+                <Radio value="1">
+                  是
+                </Radio>
+                <Radio value="0">
+                  否
+                </Radio>
+              </Radio.Group>
             )}
           </Form.Item>
           <Form.Item style={{ marginLeft: '250px' }} labelCol={{ span: 12 }} wrapperCol={{ span: 15 }}>
@@ -271,25 +196,8 @@ class Description extends React.Component {
           </Form.Item>
         </Form>
         <a id='a_id' />
-        {comments.length > 0 && <CommentList comments={comments} />}
-        <Comment
-          avatar={(
-            <Avatar
-              src="https://zos.alipayobjects.com/rmsportal/ODTLcjxAfvqbxHnVXCYX.png"
-              alt="Han Solo"
-            />
-          )}
-          content={(
-            <Editor
-              onChange={this.handleChange}
-              onSubmit={this.handleSubmit}
-              submitting={submitting}
-              value={value}
-            />
-          )}
-        />
       </Modal>
     );
   }
 }
-export default (Form.create()(Description));
+export default (Form.create()(QueriedEdit));

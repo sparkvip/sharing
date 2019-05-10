@@ -62,6 +62,28 @@ const menus = [
     icon: 'form',
     parentId: 0,
   },
+  {
+    id: 6,
+    path: '/friend',
+    name: '好友管理',
+    icon: 'form',
+    parentId: 0,
+  },
+  {
+    id: 601,
+    path: '/friend/add',
+    name: '添加好友',
+    icon: 'form',
+    parentId: 6,
+  },
+  {
+    id: 602,
+    path: '/friend/query',
+    name: '查看好友',
+    icon: 'form',
+    parentId: 6,
+  },
+  
 ];
 
 export default {
