@@ -3,7 +3,7 @@ import request from '@/utils/request';
 
 export function queryList(params) {
   // return request('/api/sys/category/query');
-  return request('/api/resource/query', {
+  return request('/api/resource/query/my', {
     method: 'POST',
     data: {
       ...params,

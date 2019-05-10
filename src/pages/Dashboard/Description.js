@@ -1,3 +1,6 @@
+/* eslint-disable react/no-access-state-in-setstate */
+/* eslint-disable react/destructuring-assignment */
+/* eslint-disable react/no-unused-state */
 /* eslint-disable jsx-a11y/anchor-has-content */
 import React from 'react';
 import {
@@ -5,11 +8,48 @@ import {
   Input,
   Form,
   Button,
-  Select
+  Select,
+  Rate,
+  Icon,
+  Avatar,
+  Comment, Tooltip, List
 } from 'antd';
+import moment from 'moment';
 import axios from 'axios';
 import { connect } from 'dva';
 
+const { TextArea } = Input;
+const localUserName = localStorage.getItem("userName");
+
+
+const CommentList = ({ comments }) => (
+  <List
+    dataSource={comments}
+    header={`${comments.length} ${comments.length > 1 ? 'replies' : 'reply'}`}
+    itemLayout="horizontal"
+    renderItem={props => <Comment {...props} />}
+  />
+);
+
+const Editor = ({
+  onChange, onSubmit, submitting, value,
+}) => (
+  <div>
+    <Form.Item>
+      <TextArea rows={4} onChange={onChange} value={value} />
+    </Form.Item>
+    <Form.Item>
+      <Button
+        htmlType="submit"
+        loading={submitting}
+        onClick={onSubmit}
+        type="primary"
+      >
+          Add Comment
+      </Button>
+    </Form.Item>
+  </div>
+  );
 
 // context设置页面中新增和编辑的弹窗
 @Form.create()
@@ -21,6 +61,16 @@ class Description extends React.Component {
     super(props);
     const { values } = props;
     this.state = {
+      comments: [
+      //   {
+      //   author: '李锦',
+      //   avatar: 'https://zos.alipayobjects.com/rmsportal/ODTLcjxAfvqbxHnVXCYX.png',
+      //   content: '这个资源真不错',
+      //   datetime: '2019-5-10',
+      // },
+    ],
+      submitting: false,
+      value: '',
       values,
       // 所属学院下拉框
       categoryDown: [],
@@ -52,6 +102,63 @@ class Description extends React.Component {
     }).catch(err => {
       console.log('err', err)
     })
+
+    // 查询评论
+    const option2 = {
+      url: '/api/comment/query',
+      method: 'POST',
+      params:{id:this.state.values.id},
+    }
+    axios(option2).then(res => {
+      console.log('res',res);
+      this.setState({
+        comments: res.data,
+      })
+      console.log('state',this.state);
+    })
+  }
+
+  handleSubmit = () => {
+    if (!this.state.value) {
+      return;
+    }
+
+    this.setState({
+      submitting: true,
+    });
+    const comment = {
+      author: localUserName,
+      avatar: 'https://zos.alipayobjects.com/rmsportal/ODTLcjxAfvqbxHnVXCYX.png',
+      content: this.state.value,
+      datetime: moment().fromNow(),
+    }
+    setTimeout(() => {
+      this.setState({
+        submitting: false,
+        value: '',
+        comments: [
+          comment,
+          ...this.state.comments,
+        ],
+      });
+    }, 300);
+    console.log('comment',{...comment,datetime: null,resourceId:this.state.values.id})
+
+    // 上传评论
+    const option = {
+      url: '/api/comment/insert',
+      method: 'POST',
+      params:{...comment,datetime: null,resourceId:this.state.values.id},
+    }
+    axios(option).then(res => {
+      console.log(res.data);
+      })
+  }
+
+  handleChange = (e) => {
+    this.setState({
+      value: e.target.value,
+    });
   }
 
   // 文件下载
@@ -85,15 +192,14 @@ class Description extends React.Component {
     }).catch((error) => {
       console.log(error);
     });
-
-
-
   }
 
 
   render() {
     const { modalVisible, form: { getFieldDecorator }, handleCancel, title } = this.props;
-    const { values, fileTypeDown, categoryDown } = this.state;
+    const { values, fileTypeDown, categoryDown, comments, submitting, value } = this.state;
+    console.log('commentsc',comments)
+  
     return (
       <Modal
         destroyOnClose
@@ -133,7 +239,7 @@ class Description extends React.Component {
             {getFieldDecorator('fileType', {
               initialValue: values.fileType
             })(
-              <Select placeholder="请选择" style={{ width: '100%', color: 'black' }}>
+              <Select placeholder="请选择" disabled='true' style={{ width: '100%', color: 'black' }}>
                 {fileTypeDown.map(item => (
                   <Select.Option key={item.id} value={item.code}>{item.name}</Select.Option>
                 ))}
@@ -154,11 +260,35 @@ class Description extends React.Component {
               <Input style={{ color: 'black' }} disabled='true' />
             )}
           </Form.Item>
+          <Form.Item labelCol={{ span: 6 }} wrapperCol={{ span: 15 }} label='评分'>
+            {getFieldDecorator('attribute1', {
+              initialValue: values.attribute1
+            })(
+              <Rate />
+            )}
+          </Form.Item>
           <Form.Item style={{ marginLeft: '250px' }} labelCol={{ span: 12 }} wrapperCol={{ span: 15 }}>
             <Button type="primary" icon="download" onClick={this.downloadFile}>下载</Button>
           </Form.Item>
         </Form>
         <a id='a_id' />
+        {comments.length > 0 && <CommentList comments={comments} />}
+        <Comment
+          avatar={(
+            <Avatar
+              src="https://zos.alipayobjects.com/rmsportal/ODTLcjxAfvqbxHnVXCYX.png"
+              alt="Han Solo"
+            />
+          )}
+          content={(
+            <Editor
+              onChange={this.handleChange}
+              onSubmit={this.handleSubmit}
+              submitting={submitting}
+              value={value}
+            />
+          )}
+        />
       </Modal>
     );
   }

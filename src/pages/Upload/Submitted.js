@@ -29,8 +29,8 @@ class BasicForms extends PureComponent {
   constructor(props) {
     super(props);
     this.state = {
-      categoryDown:[],
-      fileTypeDown:[]
+      categoryDown: [],
+      fileTypeDown: []
     }
   }
 
@@ -48,7 +48,7 @@ class BasicForms extends PureComponent {
     }).catch(err => {
       console.log('err', err)
     })
-    option = {...option,params:{code:'fileType'}}
+    option = { ...option, params: { code: 'fileType' } }
     axios(option).then(res => {
       this.setState({
         fileTypeDown: res.data,
@@ -66,8 +66,9 @@ class BasicForms extends PureComponent {
     form.validateFieldsAndScroll((err, values) => {
       // 遍历去除文件名称，存放在数组集合中
       const fileNameArray = values.file.fileList.map((v) => { return v.name; });
+      const fileName = fileNameArray && fileNameArray[0];
       // 将file属性制空,path接受文件名称[文件名称用分号隔开]
-      const params = { ...values, file: null, path: fileNameArray.join(';'), userId }
+      const params = { ...values, file: null, name: fileName, path: fileName, userId }
       if (!err) {
         const option = {
           url: `/api/resource/insert`,
@@ -87,7 +88,7 @@ class BasicForms extends PureComponent {
   };
 
   render() {
-    const { categoryDown,fileTypeDown } = this.state;
+    const { categoryDown, fileTypeDown } = this.state;
     const {
       form: { getFieldDecorator },
     } = this.props;
@@ -146,7 +147,7 @@ class BasicForms extends PureComponent {
       >
         <Card bordered={false}>
           <Form onSubmit={this.handleSubmit} hideRequiredMark style={{ marginTop: 8 }}>
-            <FormItem {...formItemLayout} label='资源名称'>
+            {/* <FormItem {...formItemLayout} label='资源名称'>
               {getFieldDecorator('name', {
                 rules: [
                   {
@@ -155,7 +156,7 @@ class BasicForms extends PureComponent {
                   },
                 ],
               })(<Input placeholder='资源名称' />)}
-            </FormItem>
+            </FormItem> */}
             <FormItem {...formItemLayout} label='资源分类'>
               {getFieldDecorator('category', {
                 rules: [
@@ -182,7 +183,7 @@ class BasicForms extends PureComponent {
               )}
             </FormItem>
             <FormItem {...formItemLayout} label='选择文件'>
-              {getFieldDecorator('file',{
+              {getFieldDecorator('file', {
                 rules: [
                   {
                     required: true,
@@ -195,7 +196,6 @@ class BasicForms extends PureComponent {
                     <Icon type="inbox" />
                   </p>
                   <p className="ant-upload-text">点击或拖拽文件至此进行上传</p>
-                  <p className="ant-upload-hint">支持单个或批量上传！</p>
                 </Dragger>
               )}
             </FormItem>
@@ -228,7 +228,26 @@ class BasicForms extends PureComponent {
                     <Radio value="1">
                       是
                     </Radio>
-                    <Radio value="2">
+                    <Radio value="0">
+                      否
+                    </Radio>
+                  </Radio.Group>
+                )}
+              </div>
+            </FormItem>
+            <FormItem
+              {...formItemLayout}
+              label='是否公开'
+            >
+              <div>
+                {getFieldDecorator('attribute2', {
+                  initialValue: '1',
+                })(
+                  <Radio.Group>
+                    <Radio value="1">
+                      是
+                    </Radio>
+                    <Radio value="0">
                       否
                     </Radio>
                   </Radio.Group>

@@ -1,3 +1,5 @@
+/* eslint-disable react/jsx-indent */
+/* eslint-disable no-nested-ternary */
 import React, { Fragment } from 'react';
 import axios from 'axios';
 import { connect } from 'dva';
@@ -6,6 +8,7 @@ import {
   Button,
   Form,
   Card,
+  Badge,
   Alert,
 } from 'antd';
 import styles from './style.less';
@@ -189,6 +192,21 @@ class Queried extends React.Component {
         dataIndex: 'downloadAmount',
         key: 'downloadAmountKey',
         align: 'center',
+      },
+      {
+        title: '审批状态',
+        dataIndex: 'attribute1',
+        align: 'center',
+        render: text => {
+          return <p>
+            {
+              text === 'unsubmit' ? <Badge status="warning" text="未提交" /> :
+                text === 'submit' ? <Badge status="processing" text="审批中" /> :
+                  text === 'agree' ? <Badge status="success" text="审批通过" /> :
+                  <Badge status="error" text="审批拒绝" />
+            }
+                 </p>
+        }
       },
       {
         title: '操作',

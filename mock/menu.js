@@ -50,7 +50,7 @@ const menus = [
   },
   {
     id: 401,
-    path: '/account/settings',
+    path: '/account/settings/base',
     name: '个人设置',
     icon: 'team',
     parentId: 0,

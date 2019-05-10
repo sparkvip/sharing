@@ -1,22 +1,36 @@
 /* eslint-disable import/extensions */
+import { message } from 'antd';
 import * as categoryList from '../service.js';
+
 
 export default {
   namespace: 'aduit',
   state: {
-    data: [{name:'11'}],
+    data: [],
   },
   effects: {
     *queryList({ payload }, { call, put }) {
-      const res = yield call(categoryList.queryList,payload);
+      const res = yield call(categoryList.queryList, payload);
       yield put({ type: 'saveList', payload: { data: res } });
     },
-    *remove({ payload }, { call }) {
-      yield call(categoryList.remove,payload);
+    *agree({ payload }, { call, put }) {
+      const res =  yield call(categoryList.agree, payload.data);
+      if(res === 'ok'){
+         message.success('操作成功！');
+      }else{
+        message.error('操作失败！');
+      }
+      yield put({ type: 'queryList', payload: payload.userId });
     },
-    *update({ payload }, { call, put }) {
-      const res = yield call(categoryList.update,payload);
-      yield put({ type: 'saveList', payload: { data: res } });
+    *reject({ payload }, { call, put }) {
+      const res =  yield call(categoryList.reject, payload.data);
+      if(res === 'ok'){
+        message.success('操作成功！');
+     }else{
+       message.error('操作失败！');
+     }
+      yield put({ type: 'queryList', payload: payload.userId });
+
     },
   },
   reducers: {

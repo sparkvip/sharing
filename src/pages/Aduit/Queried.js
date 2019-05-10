@@ -70,7 +70,6 @@ class Queried extends React.Component {
 
   // 查询当前用户已上传的资源
   queryList = () => {
-    console.log('this.props', this.props)
     const { dispatch } = this.props
     dispatch({
       type: 'aduit/queryList',
@@ -91,39 +90,54 @@ class Queried extends React.Component {
     this.setState({ selectedRowKeys, selectedRows });
   }
 
-  // 批量删除
-  batchDeleteItem = () => {
+  // 审批同意
+  agree = () => {
 
     this.setState({ buttonLoading: true });
 
     const { selectedRows } = this.state;
-
+    console.log('{ data: selectedRows, userId }',{ data: selectedRows, userId });
     // eslint-disable-next-line react/destructuring-assignment
     this.props.dispatch({
-      type: 'aduit/remove',
-      payload: selectedRows,
+      type: 'aduit/agree',
+      payload: { data: selectedRows, userId }
     })
     this.setState({
       selectedRows: [],
       selectedRowKeys: [],
       buttonLoading: false
     });
+  }
 
-    this.queryList();
+  // 审批拒绝
+  reject = () => {
+    this.setState({ buttonLoading: true });
 
+    const { selectedRows } = this.state;
+
+    // eslint-disable-next-line react/destructuring-assignment
+    this.props.dispatch({
+      type: 'aduit/reject',
+      payload: { data: selectedRows, userId }
+    })
+    this.setState({
+      selectedRows: [],
+      selectedRowKeys: [],
+      buttonLoading: false
+    });
   }
 
   // 编辑页面点击ok的回调
-  handleOk = fields => {
+  handleOk = () => {
     // eslint-disable-next-line react/destructuring-assignment
-    this.props.dispatch({
-      type: 'aduit/update',
-      payload: fields,
-    });
-    this.setState({
-      updateVisible: false,
-      currentValues: {}
-    });
+    // this.props.dispatch({
+    //   type: 'aduit/update',
+    //   payload: fields,
+    // });
+    // this.setState({
+    //   updateVisible: false,
+    //   currentValues: {}
+    // });
   };
 
   // 新建或编辑页面点击cancel的回调
@@ -209,10 +223,10 @@ class Queried extends React.Component {
                 {selectedRows.length > 0 && (
                   <div>
                     <span>
-                      <Button icon='check' type="primary" onClick={this.batchDeleteItem} loading={buttonLoading}>同意</Button>
+                      <Button icon='check' type="primary" onClick={this.agree} loading={buttonLoading}>同意</Button>
                     </span>
                     <span>
-                      <Button icon='close' type="danger" onClick={this.batchDeleteItem} loading={buttonLoading}>拒绝</Button>
+                      <Button icon='close' type="danger" onClick={this.reject} loading={buttonLoading}>拒绝</Button>
                     </span>
                   </div>
                 )}
