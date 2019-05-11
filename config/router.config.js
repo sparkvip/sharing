@@ -91,17 +91,27 @@ export default [
        {
         path: '/friend',
         icon: 'table',
-        name: '好友管理',
+        name: 'friend',
         routes: [
           {
             path: '/friend/query',
             name: 'friendquery',
-            component: './Friend/Queried',
+            component: './Friend/QueryFriend',
+          },
+          {
+            path: '/friend/apply',
+            name: 'friendapply',
+            component: './Friend/Apply',
           },
           {
             path: '/friend/add',
-            name: '添加好友',
+            name: 'friendadd',
             component: './Friend/Add',
+          },
+          {
+            path: '/friend/categoryList',
+            name: 'friendcategoryList',
+            component: './Friend/CategoryList',
           },
         ],
       },

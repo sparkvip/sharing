@@ -116,6 +116,25 @@ class Queried extends React.Component {
 
   }
 
+   // 好友共享
+   friendShared = () => {
+
+    this.setState({ buttonLoading: true });
+
+    const { selectedRows } = this.state;
+
+    // eslint-disable-next-line react/destructuring-assignment
+    this.props.dispatch({
+      type: 'resourceList/friendShared',
+      payload: selectedRows,
+    })
+    this.setState({
+      selectedRows: [],
+      selectedRowKeys: [],
+      buttonLoading: false
+    });
+  }
+
   // 编辑页面点击ok的回调
   handleOk = fields => {
     // eslint-disable-next-line react/destructuring-assignment
@@ -227,6 +246,7 @@ class Queried extends React.Component {
                 {selectedRows.length > 0 && (
                   <span>
                     <Button icon='delete' type="danger" onClick={this.batchDeleteItem} loading={buttonLoading}>批量删除</Button>
+                    <Button icon='logout' type="primary" onClick={this.friendShared} loading={buttonLoading}>加入好友共享</Button>
                   </span>
                 )}
               </div>

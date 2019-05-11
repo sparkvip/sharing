@@ -116,8 +116,9 @@ class BasicLayout extends React.PureComponent {
         });
       }
     });
-
-    const menus = await request('/api/project/menus');
+    const userId = localStorage.getItem("userId");
+    // const menus = await request(`/api/project/menus?userId=${userId}`);
+    const menus = await request(`/api/menu/query?userId=${userId}`);
 
     const menuGroup = menus.reduce((temp, item) => {
       if (temp[item.parentId]) {

@@ -13,18 +13,16 @@ import {
 import PageHeaderWrapper from '@/components/PageHeaderWrapper';
 
 const FormItem = Form.Item;
+
 const userId = localStorage.getItem("userId");
+const userName = localStorage.getItem("userName");
 
-
-@connect(({ downlist }) => ({
-  downlist: downlist.list,
-}))
 @Form.create()
 class Add extends PureComponent {
   constructor(props) {
     super(props);
     this.state = {
-      
+
     }
   }
 
@@ -34,24 +32,29 @@ class Add extends PureComponent {
     e.preventDefault();
     const { form } = this.props;
     form.validateFieldsAndScroll((err, values) => {
-      // 遍历去除文件名称，存放在数组集合中
-      const fileNameArray = values.file.fileList.map((v) => { return v.name; });
-      const fileName = fileNameArray && fileNameArray[0];
-      // 将file属性制空,path接受文件名称[文件名称用分号隔开]
-      const params = { ...values, file: null, name: fileName, path: fileName, userId }
+      const params = { ...values, id: userId }
+      if(values.name === userName){
+        message.error('请勿添加自己为好友!');
+        return;
+      }
       if (!err) {
         const option = {
-          url: `/api/resource/insert`,
+          url: `/api/friend/add`,
           method: 'post',
           params,
         };
-        axios(option).then(() => {
-          message.success('提交成功!');
+        axios(option).then((res) => {
+          if(res.data === 'ok'){
+            message.success('好友请求已发送!');
+          }else if(res.data === 2){
+            message.success('请勿重复发送好友请求！');
+          }else if(res.data === 1){
+            message.error('对方已是你的好友!');
+          }
           // 提交成功进行表单重置
           form.resetFields();
-        }).catch(error => {
-          message.error('提交失败!');
-          message.error(error.message);
+        }).catch(() => {
+          message.error('用户不存在!');
         })
       }
     });
@@ -81,7 +84,7 @@ class Add extends PureComponent {
       },
     };
 
-  
+
     return (
       <PageHeaderWrapper
         title='添加好友'
@@ -94,14 +97,14 @@ class Add extends PureComponent {
                 rules: [
                   {
                     required: true,
-                    message: '资源名称为必输项',
+                    message: '用户名为必输项',
                   },
                 ],
-              })(<Input placeholder='资源名称' />)}
+              })(<Input placeholder='用户名' />)}
             </FormItem>
             <FormItem {...submitFormLayout} style={{ marginTop: 32 }}>
               <Button type="primary" htmlType="submit">
-                提交
+                添加
               </Button>
             </FormItem>
           </Form>

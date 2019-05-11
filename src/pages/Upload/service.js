@@ -22,7 +22,14 @@ export function update(params) {
 export function remove(params) {
   return request('/api/resource/remove', {
     method: 'POST',
-    data:[...params]
+    data: [...params]
+    ,
+  });
+}
+export function share(params) {
+  return request('/api/resource/share', {
+    method: 'POST',
+    data: [...params]
     ,
   });
 }

@@ -1,4 +1,6 @@
 export default {
+  'menu.friend': '好友管理',
+  'menu.friend.friendadd': '添加好友',
   'menu.home': '首页',
   'menu.login': '登录',
   'menu.register': '注册',

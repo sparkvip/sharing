@@ -2,13 +2,13 @@
 import * as categoryList from '../service.js';
 
 export default {
-  namespace: 'categoryList',
+  namespace: 'friendList',
   state: {
     data: [{name:'11'}],
   },
   effects: {
     *queryList({ payload }, { call, put }) {
-      const res = yield call(categoryList.queryList,payload);
+      const res = yield call(categoryList.queryFriendList,payload);
       yield put({ type: 'saveList', payload: { data: res } });
     },
   },

@@ -14,6 +14,9 @@ export default {
     *remove({ payload }, { call }) {
       yield call(categoryList.remove,payload);
     },
+    *friendShared({ payload }, { call }) {
+      yield call(categoryList.share,payload);
+    },
     *update({ payload }, { call, put }) {
       const res = yield call(categoryList.update,payload);
       yield put({ type: 'saveList', payload: { data: res } });
