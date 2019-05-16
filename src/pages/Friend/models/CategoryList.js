@@ -29,6 +29,10 @@ export default {
       yield call(categoryList.reject, payload.data);
       yield put({ type: 'queryList', payload: { userId: payload.userId } });
     },
+    *remove({ payload }, { call, put }) {
+      yield call(categoryList.remove, payload.data);
+      yield put({ type: 'queryList', payload: { userId: payload.userId } });
+    },
   },
   reducers: {
     saveList(state, { payload: { data } }) {

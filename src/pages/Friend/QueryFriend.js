@@ -69,13 +69,14 @@ class Apply extends React.Component {
 
   // 删除
   delete = () => {
+    console.log('delete')
     this.setState({ buttonLoading: true });
 
     const { selectedRows } = this.state;
 
     // eslint-disable-next-line react/destructuring-assignment
     this.props.dispatch({
-      type: 'aduit/reject',
+      type: 'friend/remove',
       payload: { data: selectedRows, userId }
     })
     this.setState({

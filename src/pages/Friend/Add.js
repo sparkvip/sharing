@@ -45,16 +45,16 @@ class Add extends PureComponent {
         };
         axios(option).then((res) => {
           if(res.data === 'ok'){
-            message.success('好友请求已发送!');
+            message.success('好友请求已发送！');
           }else if(res.data === 2){
             message.success('请勿重复发送好友请求！');
           }else if(res.data === 1){
-            message.error('对方已是你的好友!');
+            message.error('对方已是你的好友！');
           }
           // 提交成功进行表单重置
           form.resetFields();
         }).catch(() => {
-          message.error('用户不存在!');
+          message.error('用户不存在！');
         })
       }
     });

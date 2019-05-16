@@ -73,7 +73,6 @@ class Queried extends React.Component {
 
   // 查询当前用户已上传的资源
   queryList = () => {
-    console.log('this.props', this.props)
     const { dispatch } = this.props
     dispatch({
       type: 'resourceList/queryList',

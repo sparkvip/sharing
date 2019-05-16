@@ -24,7 +24,8 @@ class QueriedEdit extends React.Component {
     this.state = {
       values,
       categoryDown: [],
-      fileTypeDown: []
+      fileTypeDown: [],
+      showIsShare: false
     }
   }
 
@@ -51,6 +52,19 @@ class QueriedEdit extends React.Component {
       console.log('err', err)
     })
 
+  }
+
+  // 更改是否私有选项
+  changeAttribute = (e) => {
+    if (e.target.value && e.target.value === '0') {
+      this.setState({
+        showIsShare: true
+      })
+    } else {
+      this.setState({
+        showIsShare: false
+      })
+    }
   }
 
   // 文件下载
@@ -102,7 +116,7 @@ class QueriedEdit extends React.Component {
 
   render() {
     const { modalVisible, form: { getFieldDecorator }, handleCancel, title } = this.props;
-    const { values, categoryDown, fileTypeDown } = this.state;
+    const { values, categoryDown, fileTypeDown, showIsShare } = this.state;
     return (
       <Modal
         destroyOnClose
@@ -163,25 +177,11 @@ class QueriedEdit extends React.Component {
               <Input style={{ color: 'black' }} disabled='true' />
             )}
           </Form.Item>
-          <Form.Item labelCol={{ span: 6 }} wrapperCol={{ span: 15 }} label='是否加入推荐'>
-            {getFieldDecorator('isShared', {
-              initialValue: values.isShared
-            })(
-              <Radio.Group>
-                <Radio value="1">
-                  是
-                </Radio>
-                <Radio value="0">
-                  否
-                </Radio>
-              </Radio.Group>
-            )}
-          </Form.Item>
           <Form.Item labelCol={{ span: 6 }} wrapperCol={{ span: 15 }} label='是否公开'>
             {getFieldDecorator('attribute2', {
               initialValue: values.attribute2
             })(
-              <Radio.Group>
+              <Radio.Group disabled='true' onChange={this.changeAttribute}>
                 <Radio value="1">
                   是
                 </Radio>
@@ -191,6 +191,22 @@ class QueriedEdit extends React.Component {
               </Radio.Group>
             )}
           </Form.Item>
+          <Form.Item labelCol={{ span: 6 }} wrapperCol={{ span: 15 }} label='是否加入推荐'>
+            {getFieldDecorator('isShared', {
+              initialValue: values.isShared
+            })(
+              // <Radio.Group disabled={showIsShare}>
+              <Radio.Group disabled='true'>
+                <Radio value="1">
+                  是
+                </Radio>
+                <Radio value="0">
+                  否
+                </Radio>
+              </Radio.Group>
+            )}
+          </Form.Item>
+
           <Form.Item style={{ marginLeft: '250px' }} labelCol={{ span: 12 }} wrapperCol={{ span: 15 }}>
             <Button type="primary" icon="download" onClick={this.downloadFile}>下载</Button>
           </Form.Item>

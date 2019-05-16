@@ -218,7 +218,7 @@ class CategoryList extends React.Component {
         align: 'center',
       },
       {
-        title: '上传用户',
+        title: '上传用户名',
         dataIndex: 'userName',
         key: 'userNameKey',
         align: 'center',

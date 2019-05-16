@@ -39,6 +39,12 @@ export function reject(params) {
     data: [...params],
   });
 }
+export function remove(params) {
+  return request('/api/friend/remove', {
+    method: 'POST',
+    data: [...params],
+  });
+}
 export function queryFriendList(params) {
   // return request('/api/sys/category/query');
   return request('/api/resource/query/friend/resource', {

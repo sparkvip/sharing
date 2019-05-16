@@ -152,7 +152,7 @@ class CategoryList extends React.Component {
             </FormItem>
           </Col>
           <Col span={6}>
-            <FormItem label="上传用户">
+            <FormItem label="上传用户名">
               {getFieldDecorator('userName')(
                 <Input placeholder="请输入" />
               )}

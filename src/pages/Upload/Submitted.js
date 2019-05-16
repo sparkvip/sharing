@@ -20,7 +20,6 @@ const { TextArea } = Input;
 const { Dragger } = Upload;
 const userId = localStorage.getItem("userId");
 
-
 @connect(({ downlist }) => ({
   downlist: downlist.list,
 }))
@@ -30,7 +29,8 @@ class BasicForms extends PureComponent {
     super(props);
     this.state = {
       categoryDown: [],
-      fileTypeDown: []
+      fileTypeDown: [],
+      showIsShare: false
     }
   }
 
@@ -87,8 +87,21 @@ class BasicForms extends PureComponent {
     });
   };
 
+  // 更改是否私有选项
+  changeAttribute = (e) => {
+    if (e.target.value && e.target.value === '0') {
+      this.setState({
+        showIsShare: true
+      })
+    } else {
+      this.setState({
+        showIsShare: false
+      })
+    }
+  }
+
   render() {
-    const { categoryDown, fileTypeDown } = this.state;
+    const { categoryDown, fileTypeDown, showIsShare } = this.state;
     const {
       form: { getFieldDecorator },
     } = this.props;
@@ -111,6 +124,7 @@ class BasicForms extends PureComponent {
         sm: { span: 10, offset: 7 },
       },
     };
+
 
     // 上传按钮的属性对象
     const uploadProps = {
@@ -217,14 +231,13 @@ class BasicForms extends PureComponent {
             </FormItem>
             <FormItem
               {...formItemLayout}
-              label='是否加入推荐'
-              help='是否会展现在推荐页中，需要管理员审核。'
+              label='是否公开'
             >
               <div>
-                {getFieldDecorator('isShared', {
+                {getFieldDecorator('attribute2', {
                   initialValue: '1',
                 })(
-                  <Radio.Group>
+                  <Radio.Group onChange={this.changeAttribute}>
                     <Radio value="1">
                       是
                     </Radio>
@@ -237,13 +250,14 @@ class BasicForms extends PureComponent {
             </FormItem>
             <FormItem
               {...formItemLayout}
-              label='是否公开'
+              label='是否加入推荐'
+              help='是否会展现在推荐页中，需要管理员审核。'
             >
               <div>
-                {getFieldDecorator('attribute2', {
-                  initialValue: '1',
+                {getFieldDecorator('isShared', {
+                  initialValue: showIsShare ? '0' : '1',
                 })(
-                  <Radio.Group>
+                  <Radio.Group disabled={showIsShare}>
                     <Radio value="1">
                       是
                     </Radio>
@@ -254,6 +268,7 @@ class BasicForms extends PureComponent {
                 )}
               </div>
             </FormItem>
+
             <FormItem {...submitFormLayout} style={{ marginTop: 32 }}>
               <Button type="primary" htmlType="submit">
                 提交

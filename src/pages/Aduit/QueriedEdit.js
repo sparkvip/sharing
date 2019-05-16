@@ -22,41 +22,41 @@ class QueriedEdit extends React.Component {
     const { values } = props;
     this.state = {
       values,
-      categoryDown:[],
-      fileTypeDown:[]
+      categoryDown: [],
+      fileTypeDown: []
     }
   }
 
-    // 页面初次加载之前自动调用
-    componentWillMount() {
-        let option = {
-          url: '/api/code/query',
-          method: 'POST',
-          params: { code: 'category' },
-        }
-        axios(option).then(res => {
-          this.setState({
-            categoryDown: res.data,
-          })
-        }).catch(err => {
-          console.log('err', err)
-        })
-        option = {...option,params:{code:'fileType'}}
-        axios(option).then(res => {
-          this.setState({
-            fileTypeDown: res.data,
-          })
-        }).catch(err => {
-          console.log('err', err)
-        })
-    
-      }
+  // 页面初次加载之前自动调用
+  componentWillMount() {
+    let option = {
+      url: '/api/code/query',
+      method: 'POST',
+      params: { code: 'category' },
+    }
+    axios(option).then(res => {
+      this.setState({
+        categoryDown: res.data,
+      })
+    }).catch(err => {
+      console.log('err', err)
+    })
+    option = { ...option, params: { code: 'fileType' } }
+    axios(option).then(res => {
+      this.setState({
+        fileTypeDown: res.data,
+      })
+    }).catch(err => {
+      console.log('err', err)
+    })
+
+  }
 
   // 文件下载
   downloadFile = () => {
-    const {values:localValue} = this.state;
+    const { values: localValue } = this.state;
     // console.log('localValue',localValue);
-    
+
     // 可以根据需求传特定的一些参数
     const downloadUrl = '/api/file/download';
     fetch(downloadUrl, {
@@ -81,7 +81,7 @@ class QueriedEdit extends React.Component {
         window.URL.revokeObjectURL(blobUrl);
       });
     }).catch((error) => {
-       console.log(error);
+      console.log(error);
     });
 
   }
@@ -91,17 +91,17 @@ class QueriedEdit extends React.Component {
     const { form, handleOk } = this.props;
     const { values: oldValue } = this.state;
     form.validateFields((err, fieldsValue) => {
-        if (err) {
-            return;
-        }
-        const formVals = { ...oldValue, ...fieldsValue};
-        handleOk(formVals);
+      if (err) {
+        return;
+      }
+      const formVals = { ...oldValue, ...fieldsValue };
+      handleOk(formVals);
     });
-};
+  };
 
   render() {
     const { modalVisible, form: { getFieldDecorator }, handleCancel, title } = this.props;
-    const { values,categoryDown,fileTypeDown } = this.state;
+    const { values, categoryDown, fileTypeDown } = this.state;
     return (
       <Modal
         destroyOnClose
@@ -116,17 +116,17 @@ class QueriedEdit extends React.Component {
             {getFieldDecorator('name', {
               initialValue: values.name
             })(
-              <Input style={{ color: 'black' }}  />
+              <Input style={{ color: 'black' }} disabled='true' />
             )}
           </Form.Item>
           <Form.Item labelCol={{ span: 6 }} wrapperCol={{ span: 15 }} label='资源分类'>
             {getFieldDecorator('category', {
               initialValue: values.category
             })(
-              <Select placeholder="请选择">
+              <Select style={{ color: 'black' }} placeholder="请选择" disabled='true'>
                 {categoryDown ? categoryDown.map(item => (
                   <Select.Option key={item.id} value={item.code}>{item.name}</Select.Option>
-                  )) : null}
+                )) : null}
               </Select>
             )}
           </Form.Item>
@@ -134,17 +134,17 @@ class QueriedEdit extends React.Component {
             {getFieldDecorator('introduction', {
               initialValue: values.introduction
             })(
-              <Input.TextArea style={{ color: 'black' , minHeight: 52 }} rows={4} />
+              <Input.TextArea disabled='true' style={{ color: 'black', minHeight: 52 }} rows={4} />
             )}
           </Form.Item>
           <Form.Item labelCol={{ span: 6 }} wrapperCol={{ span: 15 }} label='文件类型'>
             {getFieldDecorator('fileType', {
               initialValue: values.fileType
             })(
-              <Select placeholder="请选择">
+              <Select style={{ color: 'black' }} disabled='true' placeholder="请选择">
                 {fileTypeDown ? fileTypeDown.map(item => (
                   <Select.Option key={item.id} value={item.code}>{item.name}</Select.Option>
-                  )) : null}
+                )) : null}
               </Select>
             )}
           </Form.Item>
@@ -159,7 +159,7 @@ class QueriedEdit extends React.Component {
             {getFieldDecorator('uploadTime', {
               initialValue: values.uploadTime
             })(
-              <Input style={{ color: 'black' }} disabled='true'  />
+              <Input style={{ color: 'black' }} disabled='true' />
             )}
           </Form.Item>
           <Form.Item style={{ marginLeft: '250px' }} labelCol={{ span: 12 }} wrapperCol={{ span: 15 }}>
